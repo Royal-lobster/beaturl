@@ -1,6 +1,6 @@
 "use client";
 
-import { memo, useCallback, useState } from "react";
+import { memo, useCallback } from "react";
 
 const ABBREVS: Record<string, string> = {
   kick: "KCK", snare: "SNR", hihat: "HH", clap: "CLP",
@@ -67,8 +67,10 @@ export const TrackRow = memo(function TrackRow({
             <button
               key={c}
               onClick={() => onToggle(rowIndex, c)}
-              className="flex-1 relative border-0 cursor-pointer transition-all duration-[50ms] group/cell"
+              className="flex-1 relative border-0 cursor-pointer transition-all duration-[50ms] seq-cell"
+              data-on={isOn ? "" : undefined}
               style={{
+                "--cell-color": track.color,
                 minWidth: cellMinWidth ? `${cellMinWidth}px` : undefined,
                 background: isOn
                   ? track.color
@@ -82,17 +84,6 @@ export const TrackRow = memo(function TrackRow({
                 borderLeft: isBeatStart && c > 0 ? "1px solid rgba(255,255,255,0.06)" : "none",
               }}
             >
-              {/* Hover overlay */}
-              <div
-                className="absolute inset-0 pointer-events-none opacity-0 group-hover/cell:opacity-100 transition-opacity duration-75"
-                style={{
-                  background: isOn
-                    ? "rgba(255,255,255,0.15)"
-                    : `${track.color}35`,
-                  outline: `1px solid ${track.color}60`,
-                  outlineOffset: "-1px",
-                }}
-              />
               {isPlaying && (
                 <div className="absolute inset-0 pointer-events-none" style={{
                   background: isOn

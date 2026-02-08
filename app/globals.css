@@ -65,3 +65,13 @@ body {
   from { opacity: 0; transform: translateY(8px); }
   to { opacity: 1; transform: translateY(0); }
 }
+
+/* Sequencer cell hover */
+.seq-cell:hover {
+  outline: 1px solid color-mix(in srgb, var(--cell-color) 40%, transparent);
+  outline-offset: -1px;
+  background-color: color-mix(in srgb, var(--cell-color) 20%, transparent) !important;
+}
+.seq-cell[data-on]:hover {
+  background-color: color-mix(in srgb, var(--cell-color) 100%, white 15%) !important;
+}
