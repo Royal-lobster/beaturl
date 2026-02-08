@@ -47,16 +47,13 @@ export const TrackRow = memo(function TrackRow({
         >
           {abbrev}
         </span>
-        {/* Volume bar */}
-        <div className="w-[32px] md:w-[36px] h-[6px] md:h-[4px] rounded-full overflow-hidden" style={{ background: "rgba(255,255,255,0.08)" }}>
+        {/* Volume bar — tap to cycle */}
+        <div className="w-[36px] md:w-[40px] h-[10px] md:h-[6px] overflow-hidden" style={{ background: "rgba(255,255,255,0.06)", marginTop: 2 }}>
           <div
-            className="h-full rounded-full transition-all duration-100"
-            style={{ width: `${volume * 100}%`, background: track.color, opacity: 0.8 }}
+            className="h-full transition-all duration-150"
+            style={{ width: `${volume * 100}%`, background: track.color }}
           />
         </div>
-        <span className="text-[7px] md:text-[8px] leading-none" style={{ color: "rgba(255,255,255,0.3)" }}>
-          {volume === 0 ? "MUTE" : `${Math.round(volume * 100)}%`}
-        </span>
       </div>
 
       {/* Cells */}
