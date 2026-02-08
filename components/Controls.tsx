@@ -1,13 +1,8 @@
 "use client";
 
+import { useState, useRef, useEffect } from "react";
 import { PRESETS } from "@/lib/presets";
 import type { KitName } from "@/lib/audio";
-import { Button } from "@/components/ui/button";
-import { Slider } from "@/components/ui/slider";
-import { ToggleGroup, Toggle as ToggleGroupItem } from "@/components/ui/toggle-group";
-import { Popover, PopoverTrigger, PopoverPopup } from "@/components/ui/popover";
-import { Tooltip, TooltipTrigger, TooltipPopup, TooltipProvider } from "@/components/ui/tooltip";
-import { Separator } from "@/components/ui/separator";
 
 interface ControlsProps {
   bpm: number;
@@ -29,196 +24,137 @@ interface ControlsProps {
 const kits: KitName[] = ["808", "acoustic", "electronic"];
 
 export function Controls({
-  bpm,
-  setBpm,
-  swing,
-  setSwing,
-  kit,
-  setKit,
-  playing,
-  togglePlay,
-  clearAll,
-  randomize,
-  shareURL,
-  handleExport,
-  tapTempo,
-  loadPreset,
+  bpm, setBpm, swing, setSwing, kit, setKit,
+  playing, togglePlay, clearAll, randomize,
+  shareURL, handleExport, tapTempo, loadPreset,
 }: ControlsProps) {
+  const [presetsOpen, setPresetsOpen] = useState(false);
+  const presetsRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (presetsRef.current && !presetsRef.current.contains(e.target as Node)) {
+        setPresetsOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, []);
+
+  const btnBase = "h-8 px-3 text-[10px] tracking-[1.5px] uppercase font-semibold border border-[rgba(255,255,255,0.1)] rounded bg-transparent text-[var(--dim)] hover:text-white hover:border-[rgba(255,255,255,0.2)] transition-all duration-150 cursor-pointer whitespace-nowrap";
+
   return (
-    <TooltipProvider>
-      <div className="w-full max-w-[900px] mb-6 space-y-3">
-        {/* Row 1: Main actions */}
-        <div className="glass-panel px-4 py-3 md:px-6 md:py-4 flex flex-wrap gap-2 justify-center items-center">
-          <Tooltip>
-            <TooltipTrigger
-              render={
-                <Button
-                  variant={playing ? "default" : "outline"}
-                  size="sm"
-                  onClick={togglePlay}
-                  className="font-mono text-[10px] tracking-[1.5px] uppercase"
-                  style={playing ? {
-                    background: "linear-gradient(180deg, var(--kick), color-mix(in srgb, var(--kick) 70%, black))",
-                    borderColor: "var(--kick)",
-                    boxShadow: "0 0 16px rgba(255, 45, 85, 0.3)",
-                  } : {}}
-                />
-              }
-            >
-              {playing ? "⏸ STOP" : "▶ PLAY"}
-            </TooltipTrigger>
-            <TooltipPopup>Space to toggle</TooltipPopup>
-          </Tooltip>
+    <div className="w-full bg-[var(--surface)] border-b border-[rgba(255,255,255,0.06)] px-3 py-2 flex flex-wrap items-center gap-2 relative" style={{ zIndex: 50, fontFamily: "var(--font-mono)" }}>
+      {/* Logo */}
+      <span className="text-sm font-bold tracking-tight mr-2 hidden md:block" style={{
+        fontFamily: "var(--font-display)",
+        background: "linear-gradient(135deg, var(--kick), var(--clap), var(--hihat))",
+        WebkitBackgroundClip: "text",
+        WebkitTextFillColor: "transparent",
+      }}>BeatURL</span>
 
-          <Tooltip>
-            <TooltipTrigger render={
-              <Button variant="outline" size="sm" onClick={clearAll}
-                className="font-mono text-[10px] tracking-[1.5px] uppercase" />
-            }>
-              ✕ CLEAR
-            </TooltipTrigger>
-            <TooltipPopup>Clear all cells</TooltipPopup>
-          </Tooltip>
+      {/* Play */}
+      <button
+        onClick={togglePlay}
+        className="h-8 w-20 rounded-full text-[10px] tracking-[1.5px] uppercase font-bold border-0 cursor-pointer transition-all duration-150 flex items-center justify-center gap-1"
+        style={playing ? {
+          background: "var(--kick)",
+          color: "#fff",
+          boxShadow: "0 0 20px rgba(255,45,85,0.4)",
+        } : {
+          background: "rgba(255,255,255,0.08)",
+          color: "#fff",
+        }}
+      >
+        {playing ? "⏹ STOP" : "▶ PLAY"}
+      </button>
 
-          <Tooltip>
-            <TooltipTrigger render={
-              <Button variant="outline" size="sm" onClick={randomize}
-                className="font-mono text-[10px] tracking-[1.5px] uppercase" />
-            }>
-              🎲 RANDOM
-            </TooltipTrigger>
-            <TooltipPopup>Generate random pattern</TooltipPopup>
-          </Tooltip>
+      {/* Divider */}
+      <div className="w-px h-5 bg-[rgba(255,255,255,0.08)] hidden md:block" />
 
-          <Tooltip>
-            <TooltipTrigger render={
-              <Button variant="outline" size="sm" onClick={shareURL}
-                className="font-mono text-[10px] tracking-[1.5px] uppercase"
-                style={{ borderColor: "rgba(0, 229, 255, 0.3)" }} />
-            }>
-              🔗 SHARE
-            </TooltipTrigger>
-            <TooltipPopup>Copy beat URL to clipboard</TooltipPopup>
-          </Tooltip>
-
-          <Tooltip>
-            <TooltipTrigger render={
-              <Button variant="outline" size="sm" onClick={handleExport}
-                className="font-mono text-[10px] tracking-[1.5px] uppercase"
-                style={{ borderColor: "rgba(191, 90, 242, 0.3)" }} />
-            }>
-              💾 WAV
-            </TooltipTrigger>
-            <TooltipPopup>Export as WAV file</TooltipPopup>
-          </Tooltip>
-        </div>
-
-        {/* Row 2: Parameters */}
-        <div className="glass-panel px-4 py-3 md:px-6 md:py-4 flex flex-wrap gap-4 items-center justify-center">
-          {/* BPM */}
-          <div className="flex items-center gap-2 min-w-[140px]">
-            <span className="text-[9px] md:text-[10px] text-[var(--dim)] tracking-[2px] font-mono shrink-0">BPM</span>
-            <Slider
-              min={40} max={240} value={bpm}
-              onValueChange={(v) => setBpm(Array.isArray(v) ? v[0] : v)}
-              className="w-[70px] md:w-[90px]"
-            />
-            <span
-              className="text-xs md:text-sm w-[32px] text-center font-semibold font-mono"
-              style={{ color: "var(--hihat)", textShadow: "0 0 10px rgba(0,229,255,0.3)" }}
-            >
-              {bpm}
-            </span>
-          </div>
-
-          {/* Swing */}
-          <div className="flex items-center gap-2 min-w-[120px]">
-            <span className="text-[9px] md:text-[10px] text-[var(--dim)] tracking-[2px] font-mono shrink-0">SWING</span>
-            <Slider
-              min={0} max={80} value={swing}
-              onValueChange={(v) => setSwing(Array.isArray(v) ? v[0] : v)}
-              className="w-[50px] md:w-[60px]"
-            />
-            <span
-              className="text-[9px] md:text-[10px] w-[28px] text-center font-mono"
-              style={{ color: "var(--clap)", textShadow: "0 0 8px rgba(191,90,242,0.3)" }}
-            >
-              {swing}%
-            </span>
-          </div>
-
-          <Tooltip>
-            <TooltipTrigger render={
-              <Button variant="outline" size="sm" onClick={tapTempo}
-                className="font-mono text-[10px] tracking-[1.5px] uppercase" />
-            }>
-              🥁 TAP
-            </TooltipTrigger>
-            <TooltipPopup>Tap to set tempo</TooltipPopup>
-          </Tooltip>
-
-          <Separator orientation="vertical" className="h-5 hidden md:block opacity-20" />
-
-          {/* Kit selector */}
-          <div className="flex items-center gap-2">
-            <span className="text-[9px] md:text-[10px] text-[var(--dim)] tracking-[2px] font-mono">KIT</span>
-            <ToggleGroup
-              value={[kit]}
-              onValueChange={(val) => { if (val.length > 0) setKit(val[val.length - 1] as KitName); }}
-              variant="outline"
-              size="sm"
-            >
-              {kits.map((k) => (
-                <ToggleGroupItem
-                  key={k}
-                  value={k}
-                  className="font-mono text-[10px] tracking-[1.5px] uppercase px-3"
-                  style={kit === k ? {
-                    background: "linear-gradient(180deg, var(--tom), color-mix(in srgb, var(--tom) 60%, black))",
-                    borderColor: "var(--tom)",
-                    color: "#fff",
-                    boxShadow: "0 0 12px rgba(48, 209, 88, 0.25)",
-                  } : {}}
-                >
-                  {k.toUpperCase()}
-                </ToggleGroupItem>
-              ))}
-            </ToggleGroup>
-          </div>
-
-          {/* Presets popover */}
-          <Popover>
-            <Tooltip>
-              <TooltipTrigger render={
-                <PopoverTrigger render={
-                  <Button variant="outline" size="sm"
-                    className="font-mono text-[10px] tracking-[1.5px] uppercase"
-                    style={{ borderColor: "rgba(255, 214, 10, 0.3)" }} />
-                }>
-                  📋 PRESETS
-                </PopoverTrigger>
-              } />
-              <TooltipPopup>Load a preset pattern</TooltipPopup>
-            </Tooltip>
-            <PopoverPopup side="bottom" align="center" sideOffset={8}
-              className="min-w-[200px] !bg-[var(--surface)] !border-[var(--border-glow)]">
-              <div className="py-1">
-                <p className="px-4 pb-2 text-[9px] tracking-[2px] text-[var(--dim)] font-mono uppercase">Load Preset</p>
-                {PRESETS.map((p, i) => (
-                  <button
-                    key={p.name}
-                    onClick={() => loadPreset(i)}
-                    className="block w-full text-left px-4 py-2.5 text-[10px] tracking-[1.5px] hover:bg-white/5 transition-all duration-150 font-mono"
-                    style={{ color: "var(--text)" }}
-                  >
-                    {p.name}
-                  </button>
-                ))}
-              </div>
-            </PopoverPopup>
-          </Popover>
-        </div>
+      {/* BPM */}
+      <div className="flex items-center gap-1">
+        <span className="text-[9px] text-[var(--dim)] tracking-[2px]">BPM</span>
+        <button onClick={() => setBpm(Math.max(40, bpm - 1))} className="w-5 h-6 text-[11px] text-[var(--dim)] hover:text-white bg-transparent border-0 cursor-pointer">−</button>
+        <span className="text-xs font-semibold w-7 text-center" style={{ color: "var(--hihat)" }}>{bpm}</span>
+        <button onClick={() => setBpm(Math.min(240, bpm + 1))} className="w-5 h-6 text-[11px] text-[var(--dim)] hover:text-white bg-transparent border-0 cursor-pointer">+</button>
+        <input
+          type="range" min={40} max={240} value={bpm}
+          onChange={(e) => setBpm(Number(e.target.value))}
+          className="w-16 h-1 accent-[var(--hihat)] hidden md:block"
+        />
       </div>
-    </TooltipProvider>
+
+      {/* Swing */}
+      <div className="flex items-center gap-1">
+        <span className="text-[9px] text-[var(--dim)] tracking-[2px]">SWG</span>
+        <input
+          type="range" min={0} max={80} value={swing}
+          onChange={(e) => setSwing(Number(e.target.value))}
+          className="w-12 h-1 accent-[var(--clap)]"
+        />
+        <span className="text-[9px] w-6 text-center" style={{ color: "var(--clap)" }}>{swing}%</span>
+      </div>
+
+      <div className="w-px h-5 bg-[rgba(255,255,255,0.08)] hidden md:block" />
+
+      {/* Kit */}
+      <div className="flex items-center gap-0.5">
+        <span className="text-[9px] text-[var(--dim)] tracking-[2px] mr-1">KIT</span>
+        {kits.map((k) => (
+          <button
+            key={k}
+            onClick={() => setKit(k)}
+            className="h-6 px-2 text-[9px] tracking-[1px] uppercase rounded cursor-pointer border-0 transition-all duration-150"
+            style={kit === k ? {
+              background: "var(--tom)",
+              color: "#fff",
+              boxShadow: "0 0 10px rgba(48,209,88,0.3)",
+            } : {
+              background: "transparent",
+              color: "var(--dim)",
+            }}
+          >
+            {k}
+          </button>
+        ))}
+      </div>
+
+      <div className="w-px h-5 bg-[rgba(255,255,255,0.08)] hidden md:block" />
+
+      {/* Tap */}
+      <button onClick={tapTempo} className={btnBase}>TAP</button>
+
+      {/* Presets */}
+      <div className="relative" ref={presetsRef}>
+        <button onClick={() => setPresetsOpen(!presetsOpen)} className={btnBase}>PRESETS ▾</button>
+        {presetsOpen && (
+          <div className="absolute top-full left-0 mt-1 bg-[var(--surface)] border border-[rgba(255,255,255,0.1)] rounded-md py-1 min-w-[180px] z-50 shadow-xl">
+            {PRESETS.map((p, i) => (
+              <button
+                key={p.name}
+                onClick={() => { loadPreset(i); setPresetsOpen(false); }}
+                className="block w-full text-left px-3 py-2 text-[10px] tracking-[1px] text-[var(--text)] hover:bg-[rgba(255,255,255,0.05)] transition-colors border-0 bg-transparent cursor-pointer"
+                style={{ fontFamily: "var(--font-mono)" }}
+              >
+                {p.name}
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* Spacer */}
+      <div className="flex-1 hidden md:block" />
+
+      {/* Right actions */}
+      <button onClick={randomize} className={btnBase}>🎲 RNG</button>
+      <button onClick={clearAll} className={btnBase}>✕ CLR</button>
+      <button onClick={shareURL} className={btnBase + " !border-[rgba(0,229,255,0.3)]"}>🔗 SHARE</button>
+      <button onClick={handleExport} className={btnBase + " !border-[rgba(191,90,242,0.3)]"}>💾 WAV</button>
+
+      {/* URL badge */}
+      <span className="text-[7px] tracking-[2px] text-[var(--dim)] opacity-50 hidden lg:block">URL ENCODED</span>
+    </div>
   );
 }

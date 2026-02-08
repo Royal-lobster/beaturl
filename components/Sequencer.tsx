@@ -7,8 +7,7 @@ import { PRESETS } from "@/lib/presets";
 import { Visualizer } from "./Visualizer";
 import { TrackRow } from "./TrackRow";
 import { Controls } from "./Controls";
-import { Badge } from "@/components/ui/badge";
-import { toastManager } from "@/components/ui/toast";
+import { ToastContainer, toastManager } from "./Toast";
 
 const DEFAULT_VOLUMES = TRACKS.map(() => 0.8);
 
@@ -22,7 +21,6 @@ export function Sequencer() {
   const [volumes, setVolumes] = useState<number[]>([...DEFAULT_VOLUMES]);
   const [playing, setPlaying] = useState(false);
   const [currentStep, setCurrentStep] = useState(-1);
-  const [mounted, setMounted] = useState(false);
 
   const playingRef = useRef(false);
   const stepRef = useRef(-1);
@@ -32,8 +30,6 @@ export function Sequencer() {
   const gridRef = useRef(grid);
   const volumesRef = useRef(volumes);
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-
-  useEffect(() => { setMounted(true); }, []);
 
   useEffect(() => { bpmRef.current = bpm; }, [bpm]);
   useEffect(() => { swingRef.current = swing; }, [swing]);
@@ -148,21 +144,21 @@ export function Sequencer() {
     setBpm(p.bpm);
     setSwing(p.swing);
     setKit(p.kit);
-    toastManager.add({ title: `Loaded: ${p.name}`, type: "success" });
+    toastManager.add({ title: `Loaded: ${p.name}` });
   }, []);
 
   const shareURL = useCallback(async () => {
     updateURL();
     try {
       await navigator.clipboard.writeText(window.location.href);
-      toastManager.add({ title: "Link copied to clipboard!", type: "success" });
+      toastManager.add({ title: "Link copied to clipboard!" });
     } catch {
-      toastManager.add({ title: "Check URL bar for your beat link", type: "info" });
+      toastManager.add({ title: "Check URL bar for your beat link" });
     }
   }, [updateURL]);
 
   const handleExport = useCallback(async () => {
-    toastManager.add({ title: "Rendering WAV...", type: "loading" });
+    toastManager.add({ title: "Rendering WAV..." });
     try {
       const blob = await exportToWav(grid, bpm, swing, kit, volumes);
       const url = URL.createObjectURL(blob);
@@ -171,9 +167,9 @@ export function Sequencer() {
       a.download = `beaturl-${bpm}bpm.wav`;
       a.click();
       URL.revokeObjectURL(url);
-      toastManager.add({ title: "WAV exported!", type: "success" });
+      toastManager.add({ title: "WAV exported!" });
     } catch {
-      toastManager.add({ title: "Export failed", type: "error" });
+      toastManager.add({ title: "Export failed" });
     }
   }, [grid, bpm, swing, kit, volumes]);
 
@@ -196,119 +192,62 @@ export function Sequencer() {
   }, []);
 
   return (
-    <div className="min-h-screen flex flex-col items-center px-3 py-8 md:px-6 md:py-14 relative" style={{ zIndex: 2 }}>
-      {/* Header */}
-      <div className={mounted ? "animate-drop-in" : "opacity-0"}>
-        <h1
-          className="text-5xl md:text-7xl font-bold mb-1 tracking-tight"
-          style={{
-            fontFamily: "var(--font-display)",
-            background: "linear-gradient(135deg, var(--kick), var(--clap), var(--hihat))",
-            WebkitBackgroundClip: "text",
-            WebkitTextFillColor: "transparent",
-            filter: "drop-shadow(0 0 40px rgba(255, 45, 85, 0.25))",
-          }}
-        >
-          BeatURL
-        </h1>
-      </div>
-      <p
-        className={`text-[var(--dim)] text-[9px] md:text-[11px] tracking-[5px] mb-8 uppercase ${mounted ? "animate-fade-up" : "opacity-0"}`}
-        style={{ fontFamily: "var(--font-mono)", animationDelay: "0.15s" }}
-      >
-        encode beats in urls
-      </p>
+    <div className="h-screen flex flex-col overflow-hidden">
+      {/* Toolbar */}
+      <Controls
+        bpm={bpm} setBpm={setBpm}
+        swing={swing} setSwing={setSwing}
+        kit={kit} setKit={setKit}
+        playing={playing} togglePlay={togglePlay}
+        clearAll={clearAll} randomize={randomize}
+        shareURL={shareURL} handleExport={handleExport}
+        tapTempo={tapTempo} loadPreset={loadPreset}
+      />
 
-      {/* Visualizer */}
-      <div className={`w-full flex justify-center ${mounted ? "animate-fade-up" : "opacity-0"}`} style={{ animationDelay: "0.25s" }}>
+      {/* Grid area */}
+      <div className="flex-1 relative overflow-x-auto overflow-y-hidden">
+        {/* Visualizer as background */}
         <Visualizer playing={playing} />
-      </div>
 
-      {/* Controls */}
-      <div className={`w-full flex justify-center ${mounted ? "animate-fade-up" : "opacity-0"}`} style={{ animationDelay: "0.35s" }}>
-        <Controls
-          bpm={bpm}
-          setBpm={setBpm}
-          swing={swing}
-          setSwing={setSwing}
-          kit={kit}
-          setKit={setKit}
-          playing={playing}
-          togglePlay={togglePlay}
-          clearAll={clearAll}
-          randomize={randomize}
-          shareURL={shareURL}
-          handleExport={handleExport}
-          tapTempo={tapTempo}
-          loadPreset={loadPreset}
-        />
-      </div>
+        {/* Step indicators top */}
+        <div className="flex h-4 shrink-0" style={{ position: "relative", zIndex: 1 }}>
+          <div className="w-[60px] md:w-[80px] shrink-0" />
+          <div className="w-[32px] md:w-[40px] shrink-0" />
+          <div className="flex-1 flex gap-px px-px">
+            {Array.from({ length: STEPS }, (_, i) => (
+              <div
+                key={i}
+                className="flex-1 text-center text-[7px] md:text-[8px] leading-4"
+                style={{
+                  fontFamily: "var(--font-mono)",
+                  color: currentStep === i ? "var(--hihat)" : i % 4 === 0 ? "var(--dim)" : "rgba(255,255,255,0.15)",
+                  textShadow: currentStep === i ? "0 0 8px var(--hihat)" : "none",
+                }}
+              >
+                {i + 1}
+              </div>
+            ))}
+          </div>
+        </div>
 
-      {/* Grid */}
-      <div className="w-full max-w-[900px] overflow-x-auto pb-2">
-        <div className="min-w-[640px]">
+        {/* Track rows */}
+        <div className="relative" style={{ zIndex: 1 }}>
           {TRACKS.map((track, r) => (
-            <div
+            <TrackRow
               key={track.key}
-              className={mounted ? "animate-slide-in" : "opacity-0"}
-              style={{ animationDelay: `${0.4 + r * 0.06}s` }}
-            >
-              <TrackRow
-                track={track}
-                row={grid[r]}
-                rowIndex={r}
-                currentStep={currentStep}
-                volume={volumes[r]}
-                onToggle={toggleCell}
-                onVolumeChange={setVolume}
-              />
-            </div>
+              track={track}
+              row={grid[r]}
+              rowIndex={r}
+              currentStep={currentStep}
+              volume={volumes[r]}
+              onToggle={toggleCell}
+              onVolumeChange={setVolume}
+            />
           ))}
         </div>
       </div>
 
-      {/* Step indicators */}
-      <div className="w-full max-w-[900px] overflow-x-auto">
-        <div className="min-w-[640px] flex pl-[72px] md:pl-[100px] pr-1 gap-[3px] md:gap-1 mt-1">
-          {Array.from({ length: STEPS }, (_, i) => (
-            <div
-              key={i}
-              className="flex-1 text-center text-[7px] md:text-[8px] font-medium"
-              style={{
-                fontFamily: "var(--font-mono)",
-                color: currentStep === i ? "var(--hihat)" : i % 4 === 0 ? "var(--dim)" : "transparent",
-                textShadow: currentStep === i ? "0 0 8px var(--hihat)" : "none",
-              }}
-            >
-              {i + 1}
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* Hints */}
-      <p
-        className={`text-[var(--dim)] text-[8px] md:text-[10px] tracking-[3px] mt-8 ${mounted ? "animate-fade-up" : "opacity-0"}`}
-        style={{ fontFamily: "var(--font-mono)", animationDelay: "0.9s" }}
-      >
-        SPACE = PLAY/STOP · ENTIRE BEAT IS IN THE URL
-      </p>
-
-      {/* Footer badge */}
-      <div
-        className={`mt-6 flex gap-2 items-center ${mounted ? "animate-fade-up" : "opacity-0"}`}
-        style={{ animationDelay: "1s" }}
-      >
-        <Badge variant="outline" className="text-[8px] tracking-[1.5px] font-mono border-[rgba(255,255,255,0.08)] text-[var(--dim)] bg-transparent">
-          WEB AUDIO API
-        </Badge>
-        <Badge variant="outline" className="text-[8px] tracking-[1.5px] font-mono border-[rgba(255,255,255,0.08)] text-[var(--dim)] bg-transparent">
-          NO DATABASE
-        </Badge>
-        <Badge variant="outline" className="text-[8px] tracking-[1.5px] font-mono border-[rgba(255,255,255,0.08)] text-[var(--dim)] bg-transparent">
-          URL ENCODED
-        </Badge>
-      </div>
+      <ToastContainer />
     </div>
   );
 }
