@@ -191,48 +191,10 @@ export function Controls({
           <button onClick={shareURL} style={{ ...mobileActionBtn, color: "var(--hihat)" }} title="Share"><Link size={13} /></button>
           <button onClick={handleExport} style={{ ...mobileActionBtn, color: "var(--clap)" }} title="Export WAV"><Download size={13} /></button>
 
-          {/* Presets */}
-          <div ref={mobilePresetsRef} style={{ position: "relative", height: 40 }}>
-            <button onClick={() => setMobilePresetsOpen(!mobilePresetsOpen)} style={mobileActionBtn} title="Presets">
-              <ChevronDown size={13} />
-            </button>
-            {mobilePresetsOpen && (
-              <div style={{
-                position: "absolute",
-                top: "100%",
-                left: 0,
-                background: "var(--surface)",
-                border: "1px solid rgba(255,255,255,0.08)",
-                minWidth: 180,
-                zIndex: 50,
-              }}>
-                {PRESETS.map((p, i) => (
-                  <button
-                    key={p.name}
-                    onClick={() => { loadPreset(i); setMobilePresetsOpen(false); }}
-                    style={{
-                      display: "block",
-                      width: "100%",
-                      textAlign: "left",
-                      padding: "8px 12px",
-                      fontSize: 10,
-                      letterSpacing: 1,
-                      color: "var(--text)",
-                      background: "transparent",
-                      border: "none",
-                      borderBottom: "1px solid rgba(255,255,255,0.04)",
-                      cursor: "pointer",
-                      fontFamily: "var(--font-mono)",
-                    }}
-                    onMouseEnter={(e) => (e.currentTarget.style.background = "rgba(255,255,255,0.04)")}
-                    onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
-                  >
-                    {p.name}
-                  </button>
-                ))}
-              </div>
-            )}
-          </div>
+          {/* Presets toggle */}
+          <button onClick={() => setMobilePresetsOpen(!mobilePresetsOpen)} style={{ ...mobileActionBtn, color: mobilePresetsOpen ? "#fff" : "#888" }} title="Presets">
+            <ChevronDown size={13} style={{ transform: mobilePresetsOpen ? "rotate(180deg)" : "none", transition: "transform 0.15s" }} />
+          </button>
 
           <div style={{ width: 1, height: 20, background: "rgba(255,255,255,0.08)", margin: "0 2px" }} />
 
@@ -251,6 +213,39 @@ export function Controls({
           <div style={{ flex: 1 }} />
           <a href="https://github.com/Royal-lobster/beaturl" target="_blank" rel="noopener noreferrer" style={{ ...mobileActionBtn, color: "#888" }} title="GitHub"><Github size={13} /></a>
         </div>
+
+        {/* Presets panel (rendered outside overflow container) */}
+        {mobilePresetsOpen && (
+          <div ref={mobilePresetsRef} style={{
+            borderTop: "1px solid rgba(255,255,255,0.08)",
+            background: "var(--surface)",
+            display: "flex",
+            flexWrap: "wrap",
+          }}>
+            {PRESETS.map((p, i) => (
+              <button
+                key={p.name}
+                onClick={() => { loadPreset(i); setMobilePresetsOpen(false); }}
+                style={{
+                  flex: "1 1 auto",
+                  padding: "10px 14px",
+                  fontSize: 10,
+                  letterSpacing: 1,
+                  color: "var(--text)",
+                  background: "transparent",
+                  border: "none",
+                  borderRight: "1px solid rgba(255,255,255,0.04)",
+                  borderBottom: "1px solid rgba(255,255,255,0.04)",
+                  cursor: "pointer",
+                  fontFamily: "var(--font-mono)",
+                  textAlign: "center",
+                }}
+              >
+                {p.name}
+              </button>
+            ))}
+          </div>
+        )}
       </div>
       </div>
     );
