@@ -18,6 +18,11 @@ h1{font-size:1.6rem;letter-spacing:4px;margin:10px 0 4px}
 .controls{display:flex;gap:12px;align-items:center;flex-wrap:wrap;justify-content:center;margin-bottom:20px}
 button{background:var(--surface);border:1px solid var(--border);color:var(--text);padding:8px 18px;border-radius:6px;cursor:pointer;font-family:inherit;font-size:.8rem;transition:all .15s}
 button:hover{border-color:#444;background:#1a1a2a}
+button.active{background:var(--kick);border-color:var(--kick);color:#fff}
+.bpm-wrap{display:flex;align-items:center;gap:8px}
+.bpm-wrap label{font-size:.75rem;color:var(--dim)}
+.bpm-wrap input[type=range]{width:100px;accent-color:var(--hihat)}
+.bpm-val{font-size:.85rem;min-width:42px;text-align:center;color:var(--hihat)}
 .sequencer{display:grid;gap:4px;margin-bottom:20px;width:100%;max-width:820px}
 .track-label{font-size:.65rem;letter-spacing:1px;text-transform:uppercase;display:flex;align-items:center;justify-content:flex-end;padding-right:8px;white-space:nowrap}
 .cell{
@@ -28,6 +33,7 @@ button:hover{border-color:#444;background:#1a1a2a}
 }
 .cell:hover{border-color:#333;transform:scale(1.08)}
 .cell.on{border-color:transparent}
+.cell.playing{box-shadow:0 0 12px rgba(255,255,255,.15)}
 </style>
 </head>
 <body>
@@ -36,8 +42,13 @@ button:hover{border-color:#444;background:#1a1a2a}
 <p class="subtitle">ENCODE BEATS IN URLs</p>
 
 <div class="controls">
-  <button id="playBtn">▶ PLAY</button>
+  <button id="playBtn" onclick="togglePlay()">▶ PLAY</button>
   <button onclick="clearAll()">✕ CLEAR</button>
+  <div class="bpm-wrap">
+    <label>BPM</label>
+    <input type="range" id="bpmSlider" min="60" max="200" value="120" oninput="setBpm(this.value)">
+    <span class="bpm-val" id="bpmVal">120</span>
+  </div>
 </div>
 
 <div class="sequencer" id="seq"></div>
@@ -53,8 +64,67 @@ const TRACKS = [
 ];
 const STEPS = 16;
 const grid = TRACKS.map(()=>new Array(STEPS).fill(0));
-let bpm = 120, playing = false, step = -1;
+let bpm = 120, playing = false, step = -1, timer = null;
+let ctx = null;
 
+function getCtx(){
+  if(!ctx) ctx = new (window.AudioContext||window.webkitAudioContext)();
+  if(ctx.state==='suspended') ctx.resume();
+  return ctx;
+}
+
+// --- Drum Synths ---
+function playKick(t){
+  const c=getCtx(),o=c.createOscillator(),g=c.createGain();
+  o.type='sine';o.frequency.setValueAtTime(160,t);o.frequency.exponentialRampToValueAtTime(30,t+.15);
+  g.gain.setValueAtTime(.9,t);g.gain.exponentialRampToValueAtTime(.001,t+.3);
+  o.connect(g);g.connect(c.destination);o.start(t);o.stop(t+.3);
+}
+function playSnare(t){
+  const c=getCtx(),len=4096,buf=c.createBuffer(1,len,c.sampleRate),d=buf.getChannelData(0);
+  for(let i=0;i<len;i++) d[i]=Math.random()*2-1;
+  const n=c.createBufferSource(),nf=c.createBiquadFilter(),ng=c.createGain();
+  n.buffer=buf;nf.type='highpass';nf.frequency.value=1000;
+  ng.gain.setValueAtTime(.7,t);ng.gain.exponentialRampToValueAtTime(.001,t+.18);
+  n.connect(nf);nf.connect(ng);ng.connect(c.destination);n.start(t);n.stop(t+.18);
+  const o=c.createOscillator(),og=c.createGain();
+  o.type='triangle';o.frequency.setValueAtTime(180,t);o.frequency.exponentialRampToValueAtTime(60,t+.08);
+  og.gain.setValueAtTime(.4,t);og.gain.exponentialRampToValueAtTime(.001,t+.08);
+  o.connect(og);og.connect(c.destination);o.start(t);o.stop(t+.08);
+}
+function playHihat(t){
+  const c=getCtx(),len=2048,buf=c.createBuffer(1,len,c.sampleRate),d=buf.getChannelData(0);
+  for(let i=0;i<len;i++) d[i]=Math.random()*2-1;
+  const n=c.createBufferSource(),f=c.createBiquadFilter(),g=c.createGain();
+  n.buffer=buf;f.type='highpass';f.frequency.value=7000;
+  g.gain.setValueAtTime(.3,t);g.gain.exponentialRampToValueAtTime(.001,t+.06);
+  n.connect(f);f.connect(g);g.connect(c.destination);n.start(t);n.stop(t+.06);
+}
+function playClap(t){
+  const c=getCtx(),len=3000,buf=c.createBuffer(1,len,c.sampleRate),d=buf.getChannelData(0);
+  for(let i=0;i<len;i++) d[i]=Math.random()*2-1;
+  const n=c.createBufferSource(),f=c.createBiquadFilter(),g=c.createGain();
+  n.buffer=buf;f.type='bandpass';f.frequency.value=1200;f.Q.value=.8;
+  g.gain.setValueAtTime(0,t);
+  for(let i=0;i<3;i++){g.gain.setValueAtTime(.6,t+i*.01);g.gain.setValueAtTime(.001,t+i*.01+.005);}
+  g.gain.setValueAtTime(.6,t+.03);g.gain.exponentialRampToValueAtTime(.001,t+.15);
+  n.connect(f);f.connect(g);g.connect(c.destination);n.start(t);n.stop(t+.15);
+}
+function playTom(t){
+  const c=getCtx(),o=c.createOscillator(),g=c.createGain();
+  o.type='sine';o.frequency.setValueAtTime(120,t);o.frequency.exponentialRampToValueAtTime(50,t+.2);
+  g.gain.setValueAtTime(.6,t);g.gain.exponentialRampToValueAtTime(.001,t+.25);
+  o.connect(g);g.connect(c.destination);o.start(t);o.stop(t+.25);
+}
+function playRim(t){
+  const c=getCtx(),o=c.createOscillator(),g=c.createGain();
+  o.type='square';o.frequency.setValueAtTime(800,t);
+  g.gain.setValueAtTime(.3,t);g.gain.exponentialRampToValueAtTime(.001,t+.03);
+  o.connect(g);g.connect(c.destination);o.start(t);o.stop(t+.03);
+}
+const synths={kick:playKick,snare:playSnare,hihat:playHihat,clap:playClap,tom:playTom,rim:playRim};
+
+// --- Grid UI ---
 function buildGrid(){
   const seq=document.getElementById('seq');
   seq.style.gridTemplateColumns=`50px repeat(${STEPS},1fr)`;
@@ -81,7 +151,41 @@ function toggleCell(r,c,el){
   grid[r][c]?paintOn(el,TRACKS[r].color):paintOff(el);
 }
 function getCell(r,c){return document.querySelector(`.cell[data-r="${r}"][data-c="${c}"]`);}
+
+// --- Playback ---
+function togglePlay(){playing?stopPlay():startPlay();}
+function startPlay(){
+  playing=true;step=-1;
+  document.getElementById('playBtn').textContent='⏸ STOP';
+  document.getElementById('playBtn').classList.add('active');
+  tick();
+}
+function stopPlay(){
+  playing=false;clearTimeout(timer);
+  document.getElementById('playBtn').textContent='▶ PLAY';
+  document.getElementById('playBtn').classList.remove('active');
+  document.querySelectorAll('.cell.playing').forEach(c=>c.classList.remove('playing'));
+  step=-1;
+}
+function tick(){
+  if(!playing)return;
+  document.querySelectorAll('.cell.playing').forEach(c=>c.classList.remove('playing'));
+  step=(step+1)%STEPS;
+  const t=getCtx().currentTime;
+  TRACKS.forEach((tr,r)=>{
+    const cell=getCell(r,step);
+    if(cell)cell.classList.add('playing');
+    if(grid[r][step]) synths[tr.synth](t);
+  });
+  timer=setTimeout(tick, 60000/(bpm*4));
+}
+function setBpm(v){bpm=+v;document.getElementById('bpmVal').textContent=v;}
 function clearAll(){grid.forEach(r=>r.fill(0));buildGrid();}
+
+// --- Keyboard ---
+document.addEventListener('keydown',e=>{
+  if(e.code==='Space'&&e.target===document.body){e.preventDefault();togglePlay();}
+});
 
 buildGrid();
 </script>
