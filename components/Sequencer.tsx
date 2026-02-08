@@ -205,7 +205,7 @@ export function Sequencer() {
       />
 
       {/* Grid area */}
-      <div className="flex-1 relative overflow-x-auto overflow-y-hidden">
+      <div className="flex-1 relative overflow-x-auto overflow-y-hidden p-0">
         {/* Visualizer as background */}
         <Visualizer playing={playing} />
 

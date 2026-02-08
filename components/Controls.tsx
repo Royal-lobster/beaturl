@@ -3,6 +3,10 @@
 import { useState, useRef, useEffect } from "react";
 import { PRESETS } from "@/lib/presets";
 import type { KitName } from "@/lib/audio";
+import {
+  Play, Square, Minus, Plus, Pointer, ChevronDown,
+  Dice5, Trash2, Link, Download, Zap,
+} from "lucide-react";
 
 interface ControlsProps {
   bpm: number;
@@ -41,41 +45,41 @@ export function Controls({
     return () => document.removeEventListener("mousedown", handler);
   }, []);
 
-  const btnBase = "h-8 px-3 text-[10px] tracking-[1.5px] uppercase font-semibold border border-[rgba(255,255,255,0.1)] rounded bg-transparent text-[var(--dim)] hover:text-white hover:border-[rgba(255,255,255,0.2)] transition-all duration-150 cursor-pointer whitespace-nowrap";
+  const btnBase = "h-8 px-3 text-[10px] tracking-[1.5px] uppercase font-semibold border border-[rgba(255,255,255,0.08)] bg-transparent text-[var(--dim)] hover:text-white hover:bg-[rgba(255,255,255,0.04)] transition-all duration-100 cursor-pointer whitespace-nowrap flex items-center gap-1.5";
 
   return (
-    <div className="w-full bg-[var(--surface)] border-b border-[rgba(255,255,255,0.06)] px-3 py-2 flex flex-wrap items-center gap-2 relative" style={{ zIndex: 50, fontFamily: "var(--font-mono)" }}>
+    <div
+      className="w-full bg-[var(--surface)] border-b border-[rgba(255,255,255,0.06)] px-0 py-0 flex flex-wrap items-center relative"
+      style={{ zIndex: 50, fontFamily: "var(--font-mono)" }}
+    >
       {/* Logo */}
-      <span className="text-sm font-bold tracking-tight mr-2 hidden md:block" style={{
-        fontFamily: "var(--font-display)",
-        color: "#fff",
-      }}>BeatURL</span>
+      <div className="h-10 px-4 flex items-center border-r border-[rgba(255,255,255,0.06)] hidden md:flex">
+        <span className="text-sm font-bold tracking-[3px] uppercase" style={{ fontFamily: "var(--font-display)", color: "#fff" }}>
+          BeatURL
+        </span>
+      </div>
 
       {/* Play */}
       <button
         onClick={togglePlay}
-        className="h-8 w-20 rounded-full text-[10px] tracking-[1.5px] uppercase font-bold border-0 cursor-pointer transition-all duration-150 flex items-center justify-center gap-1"
+        className="h-10 w-20 text-[10px] tracking-[1.5px] uppercase font-bold border-0 border-r border-r-[rgba(255,255,255,0.06)] cursor-pointer transition-all duration-100 flex items-center justify-center gap-1.5"
         style={playing ? {
           background: "var(--kick)",
           color: "#fff",
-          boxShadow: "0 0 20px rgba(255,45,85,0.4)",
         } : {
-          background: "rgba(255,255,255,0.08)",
+          background: "rgba(255,255,255,0.04)",
           color: "#fff",
         }}
       >
-        {playing ? "⏹ STOP" : "▶ PLAY"}
+        {playing ? <><Square size={10} /> STOP</> : <><Play size={10} /> PLAY</>}
       </button>
 
-      {/* Divider */}
-      <div className="w-px h-5 bg-[rgba(255,255,255,0.08)] hidden md:block" />
-
       {/* BPM */}
-      <div className="flex items-center gap-1">
+      <div className="h-10 flex items-center gap-1 px-3 border-r border-[rgba(255,255,255,0.06)]">
         <span className="text-[9px] text-[var(--dim)] tracking-[2px]">BPM</span>
-        <button onClick={() => setBpm(Math.max(40, bpm - 1))} className="w-5 h-6 text-[11px] text-[var(--dim)] hover:text-white bg-transparent border-0 cursor-pointer">−</button>
+        <button onClick={() => setBpm(Math.max(40, bpm - 1))} className="w-5 h-6 text-[var(--dim)] hover:text-white bg-transparent border-0 cursor-pointer flex items-center justify-center"><Minus size={10} /></button>
         <span className="text-xs font-semibold w-7 text-center" style={{ color: "var(--hihat)" }}>{bpm}</span>
-        <button onClick={() => setBpm(Math.min(240, bpm + 1))} className="w-5 h-6 text-[11px] text-[var(--dim)] hover:text-white bg-transparent border-0 cursor-pointer">+</button>
+        <button onClick={() => setBpm(Math.min(240, bpm + 1))} className="w-5 h-6 text-[var(--dim)] hover:text-white bg-transparent border-0 cursor-pointer flex items-center justify-center"><Plus size={10} /></button>
         <input
           type="range" min={40} max={240} value={bpm}
           onChange={(e) => setBpm(Number(e.target.value))}
@@ -84,7 +88,7 @@ export function Controls({
       </div>
 
       {/* Swing */}
-      <div className="flex items-center gap-1">
+      <div className="h-10 flex items-center gap-1 px-3 border-r border-[rgba(255,255,255,0.06)]">
         <span className="text-[9px] text-[var(--dim)] tracking-[2px]">SWG</span>
         <input
           type="range" min={0} max={80} value={swing}
@@ -94,20 +98,17 @@ export function Controls({
         <span className="text-[9px] w-6 text-center" style={{ color: "var(--clap)" }}>{swing}%</span>
       </div>
 
-      <div className="w-px h-5 bg-[rgba(255,255,255,0.08)] hidden md:block" />
-
       {/* Kit */}
-      <div className="flex items-center gap-0.5">
-        <span className="text-[9px] text-[var(--dim)] tracking-[2px] mr-1">KIT</span>
+      <div className="h-10 flex items-center gap-0 border-r border-[rgba(255,255,255,0.06)]">
+        <span className="text-[9px] text-[var(--dim)] tracking-[2px] px-2">KIT</span>
         {kits.map((k) => (
           <button
             key={k}
             onClick={() => setKit(k)}
-            className="h-6 px-2 text-[9px] tracking-[1px] uppercase rounded cursor-pointer border-0 transition-all duration-150"
+            className="h-10 px-2.5 text-[9px] tracking-[1px] uppercase cursor-pointer border-0 transition-all duration-100"
             style={kit === k ? {
               background: "var(--tom)",
               color: "#fff",
-              boxShadow: "0 0 10px rgba(48,209,88,0.3)",
             } : {
               background: "transparent",
               color: "var(--dim)",
@@ -118,21 +119,23 @@ export function Controls({
         ))}
       </div>
 
-      <div className="w-px h-5 bg-[rgba(255,255,255,0.08)] hidden md:block" />
-
       {/* Tap */}
-      <button onClick={tapTempo} className={btnBase}>TAP</button>
+      <button onClick={tapTempo} className={btnBase + " h-10 border-0 border-r border-r-[rgba(255,255,255,0.06)]"}>
+        <Zap size={10} /> TAP
+      </button>
 
       {/* Presets */}
-      <div className="relative" ref={presetsRef}>
-        <button onClick={() => setPresetsOpen(!presetsOpen)} className={btnBase}>PRESETS ▾</button>
+      <div className="relative h-10" ref={presetsRef}>
+        <button onClick={() => setPresetsOpen(!presetsOpen)} className={btnBase + " h-10 border-0 border-r border-r-[rgba(255,255,255,0.06)]"}>
+          PRESETS <ChevronDown size={10} />
+        </button>
         {presetsOpen && (
-          <div className="absolute top-full left-0 mt-1 bg-[var(--surface)] border border-[rgba(255,255,255,0.1)] rounded-md py-1 min-w-[180px] z-50 shadow-xl">
+          <div className="absolute top-full left-0 bg-[var(--surface)] border border-[rgba(255,255,255,0.08)] py-0 min-w-[180px] z-50">
             {PRESETS.map((p, i) => (
               <button
                 key={p.name}
                 onClick={() => { loadPreset(i); setPresetsOpen(false); }}
-                className="block w-full text-left px-3 py-2 text-[10px] tracking-[1px] text-[var(--text)] hover:bg-[rgba(255,255,255,0.05)] transition-colors border-0 bg-transparent cursor-pointer"
+                className="block w-full text-left px-3 py-2 text-[10px] tracking-[1px] text-[var(--text)] hover:bg-[rgba(255,255,255,0.04)] transition-colors border-0 bg-transparent cursor-pointer border-b border-b-[rgba(255,255,255,0.04)]"
                 style={{ fontFamily: "var(--font-mono)" }}
               >
                 {p.name}
@@ -146,13 +149,18 @@ export function Controls({
       <div className="flex-1 hidden md:block" />
 
       {/* Right actions */}
-      <button onClick={randomize} className={btnBase}>🎲 RNG</button>
-      <button onClick={clearAll} className={btnBase}>✕ CLR</button>
-      <button onClick={shareURL} className={btnBase + " !border-[rgba(0,229,255,0.3)]"}>🔗 SHARE</button>
-      <button onClick={handleExport} className={btnBase + " !border-[rgba(191,90,242,0.3)]"}>💾 WAV</button>
-
-      {/* URL badge */}
-      <span className="text-[7px] tracking-[2px] text-[var(--dim)] opacity-50 hidden lg:block">URL ENCODED</span>
+      <button onClick={randomize} className={btnBase + " h-10 border-0 border-l border-l-[rgba(255,255,255,0.06)]"}>
+        <Dice5 size={11} /> RNG
+      </button>
+      <button onClick={clearAll} className={btnBase + " h-10 border-0 border-l border-l-[rgba(255,255,255,0.06)]"}>
+        <Trash2 size={11} /> CLR
+      </button>
+      <button onClick={shareURL} className={btnBase + " h-10 border-0 border-l border-l-[rgba(255,255,255,0.06)] text-[var(--hihat)]"}>
+        <Link size={11} /> SHARE
+      </button>
+      <button onClick={handleExport} className={btnBase + " h-10 border-0 border-l border-l-[rgba(255,255,255,0.06)] text-[var(--clap)]"}>
+        <Download size={11} /> WAV
+      </button>
     </div>
   );
 }

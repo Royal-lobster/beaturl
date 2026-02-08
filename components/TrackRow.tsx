@@ -24,7 +24,7 @@ export const TrackRow = memo(function TrackRow({
   );
 
   return (
-    <div className="flex items-stretch border-b border-[rgba(255,255,255,0.03)]" style={{ height: "calc((100vh - 52px) / 8)", minHeight: "40px" }}>
+    <div className="flex items-stretch border-b border-[rgba(255,255,255,0.03)]" style={{ height: "calc((100vh - 56px) / 8)", minHeight: "40px" }}>
       {/* Track label */}
       <div
         className="w-[60px] md:w-[80px] shrink-0 flex items-center justify-end pr-2 text-[9px] md:text-[10px] tracking-[1.5px] font-semibold uppercase"
