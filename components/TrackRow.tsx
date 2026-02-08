@@ -36,8 +36,8 @@ export const TrackRow = memo(function TrackRow({
     <div className="flex items-stretch border-b border-[rgba(255,255,255,0.03)]" style={{ flex: "1 1 0", minHeight: "36px" }}>
       {/* Sticky left label */}
       <div
-        className="w-[50px] md:w-[70px] shrink-0 flex flex-col items-center justify-center gap-0.5 cursor-pointer sticky left-0 z-10"
-        style={{ fontFamily: "var(--font-mono)", background: "var(--surface)" }}
+        className="w-[50px] md:w-[70px] shrink-0 flex flex-col items-center justify-center gap-0.5 cursor-pointer z-10"
+        style={{ fontFamily: "var(--font-mono)", background: "#0c0c16", position: "sticky", left: 0 }}
         onClick={cycleVolume}
         title={`${track.name} — Vol: ${Math.round(volume * 100)}% (click to cycle)`}
       >
