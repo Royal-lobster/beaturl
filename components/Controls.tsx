@@ -215,7 +215,7 @@ export function Controls({
 
       {/* Presets */}
       <div ref={presetsRef} style={{ position: "relative", height: 40 }}>
-        <button onClick={() => setPresetsOpen(!presetsOpen)} style={{ ...actionBtn, borderLeft: "none", borderRight: "1px solid rgba(255,255,255,0.08)" }}>
+        <button onClick={() => setPresetsOpen(!presetsOpen)} style={{ ...actionBtn, borderLeft: "none", borderRight: "none" }}>
           PRESETS <ChevronDown size={10} />
         </button>
         {presetsOpen && (
