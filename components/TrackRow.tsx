@@ -88,8 +88,8 @@ export const TrackRow = memo(function TrackRow({
                 style={{
                   background: isOn
                     ? "rgba(255,255,255,0.15)"
-                    : `${track.color}18`,
-                  outline: `1px solid ${track.color}40`,
+                    : `${track.color}35`,
+                  outline: `1px solid ${track.color}60`,
                   outlineOffset: "-1px",
                 }}
               />
