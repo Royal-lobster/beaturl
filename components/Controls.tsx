@@ -104,7 +104,8 @@ export function Controls({
       if (presetsRef.current && !presetsRef.current.contains(e.target as Node)) {
         setPresetsOpen(false);
       }
-      if (mobilePresetsRef.current && !mobilePresetsRef.current.contains(e.target as Node)) {
+      if (mobilePresetsRef.current && !mobilePresetsRef.current.contains(e.target as Node) &&
+          !(e.target as Element)?.closest?.('[data-mobile-presets-toggle]')) {
         setMobilePresetsOpen(false);
       }
     };
@@ -192,7 +193,7 @@ export function Controls({
           <button onClick={handleExport} style={{ ...mobileActionBtn, color: "var(--clap)" }} title="Export WAV"><Download size={13} /></button>
 
           {/* Presets toggle */}
-          <button onClick={() => setMobilePresetsOpen(!mobilePresetsOpen)} style={{ ...mobileActionBtn, color: mobilePresetsOpen ? "#fff" : "#888" }} title="Presets">
+          <button data-mobile-presets-toggle onClick={() => setMobilePresetsOpen(!mobilePresetsOpen)} style={{ ...mobileActionBtn, color: mobilePresetsOpen ? "#fff" : "#888" }} title="Presets">
             <ChevronDown size={13} style={{ transform: mobilePresetsOpen ? "rotate(180deg)" : "none", transition: "transform 0.15s" }} />
           </button>
 
