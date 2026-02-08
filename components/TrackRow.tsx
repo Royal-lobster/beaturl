@@ -33,7 +33,7 @@ export const TrackRow = memo(function TrackRow({
   const abbrev = ABBREVS[track.key] || track.name.slice(0, 3).toUpperCase();
 
   return (
-    <div className="flex items-stretch border-b border-[rgba(255,255,255,0.03)]" style={{ height: "calc((100vh - 56px) / 8)", minHeight: "40px" }}>
+    <div className="flex items-stretch border-b border-[rgba(255,255,255,0.03)]" style={{ flex: "1 1 0", minHeight: "36px" }}>
       {/* Sticky left label */}
       <div
         className="w-[50px] md:w-[70px] shrink-0 flex flex-col items-center justify-center gap-0.5 cursor-pointer sticky left-0 z-10"

@@ -249,7 +249,7 @@ export function Sequencer() {
         playing={playing} togglePlay={togglePlay}
         clearAll={clearAll} randomize={randomize}
         shareURL={shareURL} handleExport={handleExport}
-        tapTempo={tapTempo} loadPreset={loadPreset}
+        loadPreset={loadPreset}
         stepCount={stepCount}
         onAddBar={addBar} onRemoveBar={removeBar}
         zoom={zoom} onZoomIn={handleZoomIn} onZoomOut={handleZoomOut}
@@ -282,7 +282,7 @@ export function Sequencer() {
         </div>
 
         {/* Track rows */}
-        <div className="relative" style={{ zIndex: 1 }}>
+        <div className="flex flex-col" style={{ zIndex: 1, height: "calc(100% - 16px)" }}>
           {TRACKS.map((track, r) => (
             <TrackRow
               key={track.key}

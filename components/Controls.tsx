@@ -5,8 +5,9 @@ import { PRESETS } from "@/lib/presets";
 import type { KitName } from "@/lib/audio";
 import {
   Play, Square, Minus, Plus, ChevronDown,
-  Dice5, Trash2, Link, Download, Zap, ZoomIn, ZoomOut,
+  Dice5, Trash2, Link, Download, ZoomIn, ZoomOut,
 } from "lucide-react";
+import { BpmControl } from "./BpmControl";
 
 interface ControlsProps {
   bpm: number;
@@ -21,7 +22,6 @@ interface ControlsProps {
   randomize: () => void;
   shareURL: () => void;
   handleExport: () => void;
-  tapTempo: () => void;
   loadPreset: (idx: number) => void;
   stepCount: number;
   onAddBar: () => void;
@@ -89,7 +89,7 @@ const label: React.CSSProperties = {
 export function Controls({
   bpm, setBpm, swing, setSwing, kit, setKit,
   playing, togglePlay, clearAll, randomize,
-  shareURL, handleExport, tapTempo, loadPreset,
+  shareURL, handleExport, loadPreset,
   stepCount, onAddBar, onRemoveBar,
   zoom, onZoomIn, onZoomOut,
 }: ControlsProps) {
@@ -158,12 +158,7 @@ export function Controls({
             {playing ? <><Square size={10} /> STOP</> : <><Play size={10} /> PLAY</>}
           </button>
 
-          <div style={{ ...section, gap: 2, padding: "0 8px" }}>
-            <span style={label}>BPM</span>
-            <button onClick={() => setBpm(Math.max(40, bpm - 1))} style={iconBtn}><Minus size={10} /></button>
-            <span style={{ fontSize: 12, fontWeight: 600, color: "var(--hihat)", width: 28, textAlign: "center" }}>{bpm}</span>
-            <button onClick={() => setBpm(Math.min(240, bpm + 1))} style={iconBtn}><Plus size={10} /></button>
-          </div>
+          <BpmControl bpm={bpm} setBpm={setBpm} />
 
           <button
             onClick={cycleKit}
@@ -198,7 +193,6 @@ export function Controls({
           <button onClick={clearAll} style={mobileActionBtn} title="Clear"><Trash2 size={13} /></button>
           <button onClick={shareURL} style={{ ...mobileActionBtn, color: "var(--hihat)" }} title="Share"><Link size={13} /></button>
           <button onClick={handleExport} style={{ ...mobileActionBtn, color: "var(--clap)" }} title="Export WAV"><Download size={13} /></button>
-          <button onClick={tapTempo} style={mobileActionBtn} title="Tap Tempo"><Zap size={13} /></button>
 
           {/* Presets */}
           <div ref={presetsRef} style={{ position: "relative", height: 40 }}>
@@ -303,17 +297,7 @@ export function Controls({
       </button>
 
       {/* BPM */}
-      <div style={{ ...section, gap: 4, padding: "0 12px" }}>
-        <span style={label}>BPM</span>
-        <button onClick={() => setBpm(Math.max(40, bpm - 1))} style={iconBtn}><Minus size={10} /></button>
-        <span style={{ fontSize: 12, fontWeight: 600, color: "var(--hihat)", width: 28, textAlign: "center" }}>{bpm}</span>
-        <button onClick={() => setBpm(Math.min(240, bpm + 1))} style={iconBtn}><Plus size={10} /></button>
-        <input
-          type="range" min={40} max={240} value={bpm}
-          onChange={(e) => setBpm(Number(e.target.value))}
-          style={{ width: 64, height: 4, accentColor: "var(--hihat)" }}
-        />
-      </div>
+      <BpmControl bpm={bpm} setBpm={setBpm} />
 
       {/* Swing */}
       <div style={{ ...section, gap: 4, padding: "0 12px" }}>
@@ -366,11 +350,6 @@ export function Controls({
         <span style={{ fontSize: 9, color: "#666", width: 24, textAlign: "center" }}>{Math.round(zoom * 100)}%</span>
         <button onClick={onZoomIn} style={iconBtn}><ZoomIn size={10} /></button>
       </div>
-
-      {/* Tap */}
-      <button onClick={tapTempo} style={{ ...actionBtn, borderLeft: "none", borderRight: "1px solid rgba(255,255,255,0.08)" }}>
-        <Zap size={10} /> TAP
-      </button>
 
       {/* Presets */}
       <div ref={presetsRef} style={{ position: "relative", height: 40 }}>
