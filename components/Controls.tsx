@@ -132,19 +132,25 @@ export function Controls({
         zIndex: 50,
         fontFamily: "var(--font-mono)",
       }}>
-        {/* Row 1: Play, BPM, Kit */}
+        {/* Row 1: Logo, Play, BPM, Kit, Bars, Zoom */}
         <div style={{ display: "flex", alignItems: "center", borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
+          <div style={{ ...section, padding: "0 10px" }}>
+            <span style={{ fontFamily: "var(--font-display)", color: "#fff", fontSize: 11, fontWeight: 700, letterSpacing: 3, textTransform: "uppercase" }}>
+              BeatURL
+            </span>
+          </div>
+
           <button
             onClick={togglePlay}
             style={{
               ...section,
-              width: 64,
+              width: 56,
               justifyContent: "center",
-              gap: 4,
+              gap: 3,
               border: "none",
               borderRight: "1px solid rgba(255,255,255,0.08)",
               cursor: "pointer",
-              fontSize: 9,
+              fontSize: 8,
               fontWeight: 700,
               letterSpacing: 1.5,
               textTransform: "uppercase",
@@ -153,7 +159,7 @@ export function Controls({
               color: "#fff",
             }}
           >
-            {playing ? <><Square size={10} /> STOP</> : <><Play size={10} /> PLAY</>}
+            {playing ? <><Square size={9} /> STOP</> : <><Play size={9} /> PLAY</>}
           </button>
 
           <BpmControl bpm={bpm} setBpm={setBpm} />
@@ -162,7 +168,7 @@ export function Controls({
             onClick={cycleKit}
             style={{
               ...section,
-              padding: "0 10px",
+              padding: "0 8px",
               border: "none",
               borderLeft: "1px solid rgba(255,255,255,0.08)",
               cursor: "pointer",
@@ -179,34 +185,27 @@ export function Controls({
             {kit}
           </button>
 
-          <div style={{ flex: 1 }} />
-          <span style={{ fontSize: 9, fontWeight: 700, letterSpacing: 4, color: "rgba(255,255,255,0.2)", textTransform: "uppercase", fontFamily: "var(--font-display)", paddingRight: 12 }}>
-            BEATURL
-          </span>
-        </div>
-
-        {/* Row 2: All actions as icon-only */}
-        <div style={{ display: "flex", alignItems: "center", flexWrap: "nowrap", overflowX: "auto" }}>
-          <button onClick={randomize} style={mobileActionBtn} title="Randomize"><Dice5 size={13} /></button>
-          <button onClick={clearAll} style={mobileActionBtn} title="Clear"><Trash2 size={13} /></button>
-          <button onClick={shareURL} style={{ ...mobileActionBtn, color: "var(--hihat)" }} title="Share"><Link size={13} /></button>
-          <button onClick={handleExport} style={{ ...mobileActionBtn, color: "var(--clap)" }} title="Export WAV"><Download size={13} /></button>
-
           <div style={{ width: 1, height: 20, background: "rgba(255,255,255,0.08)", margin: "0 2px" }} />
 
           {/* Bars */}
-          <button onClick={onRemoveBar} style={{ ...mobileActionBtn, opacity: stepCount <= 4 ? 0.3 : 1 }} disabled={stepCount <= 4} title="Remove Bar"><Minus size={11} /></button>
+          <button onClick={onRemoveBar} style={{ ...mobileActionBtn, opacity: stepCount <= 4 ? 0.3 : 1 }} disabled={stepCount <= 4}><Minus size={10} /></button>
           <span style={{ fontSize: 8, color: "var(--perc)", whiteSpace: "nowrap" }}>{bars}B</span>
-          <button onClick={onAddBar} style={{ ...mobileActionBtn, opacity: stepCount >= 256 ? 0.3 : 1 }} disabled={stepCount >= 256} title="Add Bar"><Plus size={11} /></button>
+          <button onClick={onAddBar} style={{ ...mobileActionBtn, opacity: stepCount >= 256 ? 0.3 : 1 }} disabled={stepCount >= 256}><Plus size={10} /></button>
 
           <div style={{ width: 1, height: 20, background: "rgba(255,255,255,0.08)", margin: "0 2px" }} />
 
           {/* Zoom */}
-          <button onClick={onZoomOut} style={mobileActionBtn} title="Zoom Out"><ZoomOut size={11} /></button>
+          <button onClick={onZoomOut} style={mobileActionBtn}><ZoomOut size={10} /></button>
           <span style={{ fontSize: 8, color: "#666", whiteSpace: "nowrap" }}>{Math.round(zoom * 100)}%</span>
-          <button onClick={onZoomIn} style={mobileActionBtn} title="Zoom In"><ZoomIn size={11} /></button>
+          <button onClick={onZoomIn} style={mobileActionBtn}><ZoomIn size={10} /></button>
+        </div>
 
-          <div style={{ width: 1, height: 20, background: "rgba(255,255,255,0.08)", margin: "0 2px" }} />
+        {/* Row 2: Actions */}
+        <div style={{ display: "flex", alignItems: "center", flexWrap: "nowrap" }}>
+          <button onClick={randomize} style={mobileActionBtn} title="Randomize"><Dice5 size={13} /></button>
+          <button onClick={clearAll} style={mobileActionBtn} title="Clear"><Trash2 size={13} /></button>
+          <button onClick={shareURL} style={{ ...mobileActionBtn, color: "var(--hihat)" }} title="Share"><Link size={13} /></button>
+          <button onClick={handleExport} style={{ ...mobileActionBtn, color: "var(--clap)" }} title="Export WAV"><Download size={13} /></button>
 
           {/* Presets toggle */}
           <button data-mobile-presets-toggle onClick={() => setMobilePresetsOpen(!mobilePresetsOpen)} style={{ ...mobileActionBtn, color: mobilePresetsOpen ? "#fff" : "#888", gap: 3 }} title="Presets">
