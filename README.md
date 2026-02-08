@@ -4,7 +4,7 @@
 
 # BeatURL
 
-> A drum machine that encodes your entire beat in the URL. No database. No backend. Just a link.
+A drum machine that encodes your entire beat in the URL. No database. No backend. Just a link.
 
 **[→ beaturl.vercel.app](https://beaturl.vercel.app)**
 
