@@ -13,7 +13,7 @@
   --clap:#a855f7;--tom:#22c55e;--rim:#f472b6;
 }
 body{background:var(--bg);color:var(--text);font-family:'SF Mono',Monaco,'Cascadia Code',monospace;min-height:100vh;display:flex;flex-direction:column;align-items:center;padding:20px;user-select:none;-webkit-user-select:none}
-h1{font-size:1.6rem;letter-spacing:4px;margin:10px 0 4px}
+h1{font-size:1.6rem;letter-spacing:4px;margin:10px 0 4px;background:linear-gradient(135deg,var(--kick),var(--hihat));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
 .subtitle{color:var(--dim);font-size:.7rem;letter-spacing:2px;margin-bottom:20px}
 .controls{display:flex;gap:12px;align-items:center;flex-wrap:wrap;justify-content:center;margin-bottom:20px}
 button{background:var(--surface);border:1px solid var(--border);color:var(--text);padding:8px 18px;border-radius:6px;cursor:pointer;font-family:inherit;font-size:.8rem;transition:all .15s}
@@ -24,6 +24,7 @@ button.active{background:var(--kick);border-color:var(--kick);color:#fff}
 .bpm-wrap input[type=range]{width:100px;accent-color:var(--hihat)}
 .bpm-val{font-size:.85rem;min-width:42px;text-align:center;color:var(--hihat)}
 .sequencer{display:grid;gap:4px;margin-bottom:20px;width:100%;max-width:820px}
+.track{display:contents}
 .track-label{font-size:.65rem;letter-spacing:1px;text-transform:uppercase;display:flex;align-items:center;justify-content:flex-end;padding-right:8px;white-space:nowrap}
 .cell{
   aspect-ratio:1;border-radius:4px;cursor:pointer;
@@ -38,6 +39,17 @@ button.active{background:var(--kick);border-color:var(--kick);color:#fff}
 .toast{position:fixed;bottom:30px;left:50%;transform:translateX(-50%);background:var(--hihat);color:#000;padding:8px 20px;border-radius:20px;font-size:.75rem;font-weight:600;opacity:0;transition:opacity .3s;pointer-events:none}
 .toast.show{opacity:1}
 .hint{color:var(--dim);font-size:.6rem;letter-spacing:1px;margin-top:8px}
+.swing-wrap{display:flex;align-items:center;gap:8px}
+.swing-wrap label{font-size:.75rem;color:var(--dim)}
+.swing-wrap input[type=range]{width:60px;accent-color:var(--clap)}
+.swing-val{font-size:.75rem;color:var(--clap);min-width:28px;text-align:center}
+
+@media(max-width:600px){
+  .sequencer{gap:3px}
+  .track-label{font-size:.55rem;padding-right:4px}
+  button{padding:6px 12px;font-size:.7rem}
+  h1{font-size:1.2rem}
+}
 </style>
 </head>
 <body>
@@ -53,6 +65,11 @@ button.active{background:var(--kick);border-color:var(--kick);color:#fff}
     <input type="range" id="bpmSlider" min="60" max="200" value="120" oninput="setBpm(this.value)">
     <span class="bpm-val" id="bpmVal">120</span>
   </div>
+  <div class="swing-wrap">
+    <label>SWING</label>
+    <input type="range" id="swingSlider" min="0" max="80" value="0" oninput="setSwing(this.value)">
+    <span class="swing-val" id="swingVal">0%</span>
+  </div>
 </div>
 
 <div class="sequencer" id="seq"></div>
@@ -62,7 +79,7 @@ button.active{background:var(--kick);border-color:var(--kick);color:#fff}
   <button onclick="randomize()">🎲 RANDOM</button>
 </div>
 
-<p class="hint">SPACE = PLAY/STOP · ENTIRE BEAT IS IN THE URL</p>
+<p class="hint">SPACE = PLAY/STOP &middot; ENTIRE BEAT IS IN THE URL</p>
 
 <div class="toast" id="toast">Link copied to clipboard!</div>
 
@@ -77,7 +94,7 @@ const TRACKS = [
 ];
 const STEPS = 16;
 const grid = TRACKS.map(()=>new Array(STEPS).fill(0));
-let bpm = 120, playing = false, step = -1, timer = null;
+let bpm = 120, swing = 0, playing = false, step = -1, timer = null;
 let ctx = null;
 
 function getCtx(){
@@ -191,9 +208,14 @@ function tick(){
     if(cell)cell.classList.add('playing');
     if(grid[r][step]) synths[tr.synth](t);
   });
-  timer=setTimeout(tick, 60000/(bpm*4));
+  const baseMs=60000/(bpm*4);
+  const swingOffset=(step%2===1)? baseMs*(swing/100)*0.66 : 0;
+  timer=setTimeout(tick, baseMs+swingOffset);
 }
+
+// --- Controls ---
 function setBpm(v){bpm=+v;document.getElementById('bpmVal').textContent=v;encodeURL();}
+function setSwing(v){swing=+v;document.getElementById('swingVal').textContent=v+'%';encodeURL();}
 function clearAll(){grid.forEach(r=>r.fill(0));buildGrid();encodeURL();}
 function randomize(){
   TRACKS.forEach((tr,r)=>{
@@ -206,7 +228,7 @@ function randomize(){
 // --- URL State ---
 function encodeURL(){
   const nums=grid.map(row=>{let n=0;row.forEach((v,i)=>{if(v)n|=(1<<i);});return n;});
-  const data=[bpm,...nums].join('.');
+  const data=[bpm,swing,...nums].join('.');
   history.replaceState(null,'','#'+data);
 }
 function decodeURL(){
@@ -214,12 +236,15 @@ function decodeURL(){
   if(!h)return;
   try{
     const parts=h.split('.').map(Number);
-    if(parts.length<1+TRACKS.length)return;
+    if(parts.length<2+TRACKS.length)return;
     bpm=Math.max(60,Math.min(200,parts[0]||120));
+    swing=Math.max(0,Math.min(80,parts[1]||0));
     document.getElementById('bpmSlider').value=bpm;
     document.getElementById('bpmVal').textContent=bpm;
+    document.getElementById('swingSlider').value=swing;
+    document.getElementById('swingVal').textContent=swing+'%';
     TRACKS.forEach((_,r)=>{
-      const n=parts[1+r]||0;
+      const n=parts[2+r]||0;
       for(let c=0;c<STEPS;c++) grid[r][c]=(n>>c)&1;
     });
   }catch(e){}
