@@ -187,6 +187,9 @@ export function Controls({
           </button>
 
           <div style={{ flex: 1 }} />
+          <span style={{ fontSize: 9, fontWeight: 700, letterSpacing: 4, color: "rgba(255,255,255,0.2)", textTransform: "uppercase", fontFamily: "var(--font-display)", paddingRight: 12 }}>
+            BEATURL
+          </span>
         </div>
 
         {/* Row 2: All actions as icon-only */}
