@@ -22,6 +22,7 @@ export function Sequencer() {
   const [currentStep, setCurrentStep] = useState(-1);
   const [toast, setToast] = useState("");
   const [presetsOpen, setPresetsOpen] = useState(false);
+  const [mounted, setMounted] = useState(false);
 
   const playingRef = useRef(false);
   const stepRef = useRef(-1);
@@ -31,6 +32,9 @@ export function Sequencer() {
   const gridRef = useRef(grid);
   const volumesRef = useRef(volumes);
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Trigger mount animations
+  useEffect(() => { setMounted(true); }, []);
 
   // Sync refs
   useEffect(() => { bpmRef.current = bpm; }, [bpm]);
@@ -186,7 +190,6 @@ export function Sequencer() {
   const tapTempo = useCallback(() => {
     const now = Date.now();
     const taps = tapTimesRef.current;
-    // Reset if last tap was > 2s ago
     if (taps.length > 0 && now - taps[taps.length - 1] > 2000) {
       tapTimesRef.current = [];
     }
@@ -198,57 +201,79 @@ export function Sequencer() {
       const newBpm = Math.round(60000 / avg);
       setBpm(Math.max(40, Math.min(240, newBpm)));
     }
-    // Keep last 6 taps
     if (taps.length > 6) taps.shift();
   }, []);
 
   return (
-    <div className="min-h-screen flex flex-col items-center px-3 py-6 md:px-6 md:py-10 relative">
+    <div className="min-h-screen flex flex-col items-center px-3 py-8 md:px-6 md:py-14 relative" style={{ zIndex: 2 }}>
       {/* Header */}
-      <h1 className="text-3xl md:text-4xl font-bold tracking-[6px] mb-1 bg-gradient-to-r from-[var(--kick)] to-[var(--hihat)] bg-clip-text text-transparent">
-        BEATURL
-      </h1>
-      <p className="text-[var(--dim)] text-[10px] md:text-xs tracking-[3px] mb-6">
-        ENCODE BEATS IN URLs
+      <div className={mounted ? "animate-drop-in" : "opacity-0"}>
+        <h1
+          className="text-5xl md:text-7xl font-normal mb-1 tracking-wide"
+          style={{
+            fontFamily: "var(--font-display)",
+            background: "linear-gradient(135deg, var(--kick), var(--clap), var(--hihat))",
+            WebkitBackgroundClip: "text",
+            WebkitTextFillColor: "transparent",
+            filter: "drop-shadow(0 0 30px rgba(255, 45, 85, 0.2))",
+          }}
+        >
+          BeatURL
+        </h1>
+      </div>
+      <p
+        className={`text-[var(--dim)] text-[9px] md:text-[11px] tracking-[5px] mb-8 uppercase ${mounted ? "animate-fade-up" : "opacity-0"}`}
+        style={{ fontFamily: "var(--font-mono)", animationDelay: "0.15s" }}
+      >
+        encode beats in urls
       </p>
 
       {/* Visualizer */}
-      <Visualizer playing={playing} />
+      <div className={`w-full flex justify-center ${mounted ? "animate-fade-up" : "opacity-0"}`} style={{ animationDelay: "0.25s" }}>
+        <Visualizer playing={playing} />
+      </div>
 
       {/* Controls */}
-      <Controls
-        bpm={bpm}
-        setBpm={setBpm}
-        swing={swing}
-        setSwing={setSwing}
-        kit={kit}
-        setKit={setKit}
-        playing={playing}
-        togglePlay={togglePlay}
-        clearAll={clearAll}
-        randomize={randomize}
-        shareURL={shareURL}
-        handleExport={handleExport}
-        tapTempo={tapTempo}
-        presetsOpen={presetsOpen}
-        setPresetsOpen={setPresetsOpen}
-        loadPreset={loadPreset}
-      />
+      <div className={`w-full flex justify-center ${mounted ? "animate-fade-up" : "opacity-0"}`} style={{ animationDelay: "0.35s" }}>
+        <Controls
+          bpm={bpm}
+          setBpm={setBpm}
+          swing={swing}
+          setSwing={setSwing}
+          kit={kit}
+          setKit={setKit}
+          playing={playing}
+          togglePlay={togglePlay}
+          clearAll={clearAll}
+          randomize={randomize}
+          shareURL={shareURL}
+          handleExport={handleExport}
+          tapTempo={tapTempo}
+          presetsOpen={presetsOpen}
+          setPresetsOpen={setPresetsOpen}
+          loadPreset={loadPreset}
+        />
+      </div>
 
       {/* Grid */}
       <div className="w-full max-w-[900px] overflow-x-auto pb-2">
         <div className="min-w-[640px]">
           {TRACKS.map((track, r) => (
-            <TrackRow
+            <div
               key={track.key}
-              track={track}
-              row={grid[r]}
-              rowIndex={r}
-              currentStep={currentStep}
-              volume={volumes[r]}
-              onToggle={toggleCell}
-              onVolumeChange={setVolume}
-            />
+              className={mounted ? "animate-slide-in" : "opacity-0"}
+              style={{ animationDelay: `${0.4 + r * 0.06}s` }}
+            >
+              <TrackRow
+                track={track}
+                row={grid[r]}
+                rowIndex={r}
+                currentStep={currentStep}
+                volume={volumes[r]}
+                onToggle={toggleCell}
+                onVolumeChange={setVolume}
+              />
+            </div>
           ))}
         </div>
       </div>
@@ -259,9 +284,11 @@ export function Sequencer() {
           {Array.from({ length: STEPS }, (_, i) => (
             <div
               key={i}
-              className="flex-1 text-center text-[8px] md:text-[9px] font-medium"
+              className="flex-1 text-center text-[7px] md:text-[8px] font-medium"
               style={{
+                fontFamily: "var(--font-mono)",
                 color: currentStep === i ? "var(--hihat)" : i % 4 === 0 ? "var(--dim)" : "transparent",
+                textShadow: currentStep === i ? "0 0 8px var(--hihat)" : "none",
               }}
             >
               {i + 1}
@@ -271,16 +298,40 @@ export function Sequencer() {
       </div>
 
       {/* Hints */}
-      <p className="text-[var(--dim)] text-[9px] md:text-[10px] tracking-[2px] mt-6">
+      <p
+        className={`text-[var(--dim)] text-[8px] md:text-[10px] tracking-[3px] mt-8 ${mounted ? "animate-fade-up" : "opacity-0"}`}
+        style={{ fontFamily: "var(--font-mono)", animationDelay: "0.9s" }}
+      >
         SPACE = PLAY/STOP · ENTIRE BEAT IS IN THE URL
       </p>
 
+      {/* Footer badge */}
+      <div
+        className={`mt-6 px-4 py-2 rounded-full border ${mounted ? "animate-fade-up" : "opacity-0"}`}
+        style={{
+          animationDelay: "1s",
+          fontFamily: "var(--font-mono)",
+          fontSize: "8px",
+          letterSpacing: "1.5px",
+          color: "var(--dim)",
+          borderColor: "var(--border)",
+          background: "rgba(14, 14, 24, 0.5)",
+        }}
+      >
+        MADE WITH WEB AUDIO API · NO DATABASE · BEAT ENCODED IN URL
+      </div>
+
       {/* Toast */}
       <div
-        className={`fixed bottom-6 left-1/2 -translate-x-1/2 px-5 py-2 rounded-full text-xs font-semibold transition-all duration-300 z-50 ${
+        className={`fixed bottom-6 left-1/2 -translate-x-1/2 px-6 py-2.5 rounded-full text-xs font-semibold transition-all duration-300 z-50 ${
           toast ? "opacity-100 translate-y-0" : "opacity-0 translate-y-2"
         }`}
-        style={{ background: "var(--hihat)", color: "#000" }}
+        style={{
+          background: "linear-gradient(135deg, var(--hihat), var(--clap))",
+          color: "#000",
+          fontFamily: "var(--font-mono)",
+          boxShadow: "0 4px 20px rgba(0, 229, 255, 0.3)",
+        }}
       >
         {toast}
       </div>
