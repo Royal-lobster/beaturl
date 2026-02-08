@@ -1,14 +1,22 @@
+<div align="center">
+
+<img src="https://beaturl.vercel.app/icon" width="50" /> 
+
 # BeatURL
 
 > A drum machine that encodes your entire beat in the URL. No database. No backend. Just a link.
 
 **[→ beaturl.vercel.app](https://beaturl.vercel.app)**
 
-## What is this?
+![BeatURL Screenshot](https://raw.githubusercontent.com/Royal-lobster/beaturl/refs/heads/main/screenshot.png)
+
+</div>
+
+## 🎶 What is this?
 
 BeatURL is a step sequencer that runs entirely in your browser. Every beat you create is encoded directly in the URL hash — copy the link, share it, and anyone who opens it hears your exact pattern instantly.
 
-## Features
+## ✨ Features
 
 - **8 tracks** — kick, snare, hihat, clap, tom, rim, perc, cowbell
 - **6 drum kits** — 808, Acoustic, Electronic, Lo-fi, Industrial, Minimal
@@ -20,27 +28,29 @@ BeatURL is a step sequencer that runs entirely in your browser. Every beat you c
 - **WAV export** — render your pattern as audio via OfflineAudioContext
 - **URL sharing** — the entire state (grid, BPM, swing, kit, volumes, bar count) lives in the URL hash
 
-## No Samples
+## 🔊 No Samples
 
 All drum sounds are synthesized in real-time using the Web Audio API — oscillators, noise generators, filters, and waveshapers. Zero audio files are loaded.
 
-## URL Encoding
+## 🔗 URL Encoding
 
 The URL hash contains everything:
 
 ```
+
 #120.0.2.16.ff03.0c00.ffff.0000.0000.0000.0000.0000.80.80.80.80.80.80.80.80
- │   │ │ │   │     └─ track grid data (hex-encoded bitfields)
- │   │ │ │   └─ kick pattern
- │   │ │ └─ step count
- │   │ └─ kit index
- │   └─ swing
- └─ BPM
-```
+│   │ │ │   │     └─ track grid data (hex-encoded bitfields)
+│   │ │ │   └─ kick pattern
+│   │ │ └─ step count
+│   │ └─ kit index
+│   └─ swing
+└─ BPM
+
+````
 
 Copy the URL → share it → anyone hears your beat.
 
-## Tech
+## 🛠️ Tech
 
 - Next.js 16 (App Router)
 - TypeScript
@@ -48,15 +58,15 @@ Copy the URL → share it → anyone hears your beat.
 - Web Audio API
 - Deployed on Vercel
 
-## Development
+## 🚀 Development
 
 ```bash
 pnpm install
 pnpm dev
-```
+````
 
 Open [localhost:3000](http://localhost:3000).
 
-## License
+## 📄 License
 
 MIT
