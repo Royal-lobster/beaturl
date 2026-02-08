@@ -264,20 +264,27 @@ export function Sequencer() {
         <div className="flex h-4 shrink-0" style={{ position: "relative", zIndex: 1 }}>
           <div className="w-[50px] md:w-[70px] shrink-0 sticky left-0 z-10" style={{ background: "var(--surface)" }} />
           <div className="flex-1 flex gap-px px-px">
-            {Array.from({ length: stepCount }, (_, i) => (
-              <div
-                key={i}
-                className="flex-1 text-center text-[7px] md:text-[8px] leading-4"
-                style={{
-                  fontFamily: "var(--font-mono)",
-                  minWidth: cellMinWidth ? `${cellMinWidth}px` : undefined,
-                  color: currentStep === i ? "var(--hihat)" : i % 4 === 0 ? "var(--dim)" : "rgba(255,255,255,0.15)",
-                  textShadow: currentStep === i ? "0 0 8px var(--hihat)" : "none",
-                }}
-              >
-                {i + 1}
-              </div>
-            ))}
+            {Array.from({ length: stepCount }, (_, i) => {
+              // Determine label density: show fewer numbers when cells are narrow
+              const effectiveCellWidth = cellMinWidth || (typeof window !== "undefined" ? (window.innerWidth - 70) / stepCount : 40);
+              const showEvery = effectiveCellWidth < 12 ? 16 : effectiveCellWidth < 18 ? 8 : effectiveCellWidth < 28 ? 4 : 1;
+              const showLabel = i % showEvery === 0 || currentStep === i;
+
+              return (
+                <div
+                  key={i}
+                  className="flex-1 text-center text-[7px] md:text-[8px] leading-4 overflow-hidden"
+                  style={{
+                    fontFamily: "var(--font-mono)",
+                    minWidth: cellMinWidth ? `${cellMinWidth}px` : undefined,
+                    color: currentStep === i ? "var(--hihat)" : i % 4 === 0 ? "var(--dim)" : "rgba(255,255,255,0.15)",
+                    textShadow: currentStep === i ? "0 0 8px var(--hihat)" : "none",
+                  }}
+                >
+                  {showLabel ? i + 1 : ""}
+                </div>
+              );
+            })}
           </div>
         </div>
 
