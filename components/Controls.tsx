@@ -33,6 +33,52 @@ interface ControlsProps {
 
 const kits: KitName[] = ["808", "acoustic", "electronic"];
 
+/* Shared styles as objects to avoid Tailwind class conflicts */
+const section: React.CSSProperties = {
+  height: 40,
+  display: "flex",
+  alignItems: "center",
+  borderRight: "1px solid rgba(255,255,255,0.08)",
+};
+
+const iconBtn: React.CSSProperties = {
+  background: "none",
+  border: "none",
+  color: "#888",
+  cursor: "pointer",
+  width: 28,
+  height: 28,
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "center",
+};
+
+const actionBtn: React.CSSProperties = {
+  height: 40,
+  padding: "0 16px",
+  background: "none",
+  border: "none",
+  borderLeft: "1px solid rgba(255,255,255,0.08)",
+  color: "#888",
+  cursor: "pointer",
+  display: "flex",
+  alignItems: "center",
+  gap: 6,
+  fontSize: 10,
+  fontWeight: 600,
+  letterSpacing: 1.5,
+  textTransform: "uppercase" as const,
+  whiteSpace: "nowrap" as const,
+  fontFamily: "var(--font-mono)",
+};
+
+const label: React.CSSProperties = {
+  fontSize: 9,
+  color: "#666",
+  letterSpacing: 2,
+  fontFamily: "var(--font-mono)",
+};
+
 export function Controls({
   bpm, setBpm, swing, setSwing, kit, setKit,
   playing, togglePlay, clearAll, randomize,
@@ -53,18 +99,23 @@ export function Controls({
     return () => document.removeEventListener("mousedown", handler);
   }, []);
 
-  const btnBase = "h-8 px-3 text-[10px] tracking-[1.5px] uppercase font-semibold border border-[rgba(255,255,255,0.08)] bg-transparent text-[var(--dim)] hover:text-white hover:bg-[rgba(255,255,255,0.04)] transition-all duration-100 cursor-pointer whitespace-nowrap flex items-center gap-1.5";
-
   const bars = stepCount / 4;
 
   return (
-    <div
-      className="w-full bg-[var(--surface)] border-b border-[rgba(255,255,255,0.06)] px-0 py-0 flex flex-wrap items-center relative"
-      style={{ zIndex: 50, fontFamily: "var(--font-mono)" }}
-    >
+    <div style={{
+      width: "100%",
+      background: "var(--surface)",
+      borderBottom: "1px solid rgba(255,255,255,0.06)",
+      display: "flex",
+      flexWrap: "wrap",
+      alignItems: "center",
+      position: "relative",
+      zIndex: 50,
+      fontFamily: "var(--font-mono)",
+    }}>
       {/* Logo */}
-      <div className="h-10 px-4 flex items-center border-r border-[rgba(255,255,255,0.06)] hidden md:flex">
-        <span className="text-sm font-bold tracking-[3px] uppercase" style={{ fontFamily: "var(--font-display)", color: "#fff" }}>
+      <div style={{ ...section, padding: "0 16px" }} className="hidden md:flex">
+        <span style={{ fontFamily: "var(--font-display)", color: "#fff", fontSize: 14, fontWeight: 700, letterSpacing: 3, textTransform: "uppercase" }}>
           BeatURL
         </span>
       </div>
@@ -72,12 +123,19 @@ export function Controls({
       {/* Play */}
       <button
         onClick={togglePlay}
-        className="h-10 w-20 text-[10px] tracking-[1.5px] uppercase font-bold border-0 border-r border-r-[rgba(255,255,255,0.06)] cursor-pointer transition-all duration-100 flex items-center justify-center gap-1.5"
-        style={playing ? {
-          background: "var(--kick)",
-          color: "#fff",
-        } : {
-          background: "rgba(255,255,255,0.04)",
+        style={{
+          ...section,
+          width: 80,
+          justifyContent: "center",
+          gap: 6,
+          border: "none",
+          cursor: "pointer",
+          fontSize: 10,
+          fontWeight: 700,
+          letterSpacing: 1.5,
+          textTransform: "uppercase",
+          fontFamily: "var(--font-mono)",
+          background: playing ? "var(--kick)" : "rgba(255,255,255,0.04)",
           color: "#fff",
         }}
       >
@@ -85,83 +143,111 @@ export function Controls({
       </button>
 
       {/* BPM */}
-      <div className="h-10 flex items-center gap-1 px-3 border-r border-[rgba(255,255,255,0.06)]">
-        <span className="text-[9px] text-[var(--dim)] tracking-[2px]">BPM</span>
-        <button onClick={() => setBpm(Math.max(40, bpm - 1))} className="w-5 h-6 text-[var(--dim)] hover:text-white bg-transparent border-0 cursor-pointer flex items-center justify-center"><Minus size={10} /></button>
-        <span className="text-xs font-semibold w-7 text-center" style={{ color: "var(--hihat)" }}>{bpm}</span>
-        <button onClick={() => setBpm(Math.min(240, bpm + 1))} className="w-5 h-6 text-[var(--dim)] hover:text-white bg-transparent border-0 cursor-pointer flex items-center justify-center"><Plus size={10} /></button>
+      <div style={{ ...section, gap: 4, padding: "0 12px" }}>
+        <span style={label}>BPM</span>
+        <button onClick={() => setBpm(Math.max(40, bpm - 1))} style={iconBtn}><Minus size={10} /></button>
+        <span style={{ fontSize: 12, fontWeight: 600, color: "var(--hihat)", width: 28, textAlign: "center" }}>{bpm}</span>
+        <button onClick={() => setBpm(Math.min(240, bpm + 1))} style={iconBtn}><Plus size={10} /></button>
         <input
           type="range" min={40} max={240} value={bpm}
           onChange={(e) => setBpm(Number(e.target.value))}
-          className="w-16 h-1 accent-[var(--hihat)] hidden md:block"
+          className="hidden md:block"
+          style={{ width: 64, height: 4, accentColor: "var(--hihat)" }}
         />
       </div>
 
       {/* Swing */}
-      <div className="h-10 flex items-center gap-1 px-3 border-r border-[rgba(255,255,255,0.06)]">
-        <span className="text-[9px] text-[var(--dim)] tracking-[2px]">SWG</span>
+      <div style={{ ...section, gap: 4, padding: "0 12px" }}>
+        <span style={label}>SWG</span>
         <input
           type="range" min={0} max={80} value={swing}
           onChange={(e) => setSwing(Number(e.target.value))}
-          className="w-12 h-1 accent-[var(--clap)]"
+          style={{ width: 48, height: 4, accentColor: "var(--clap)" }}
         />
-        <span className="text-[9px] w-6 text-center" style={{ color: "var(--clap)" }}>{swing}%</span>
+        <span style={{ fontSize: 9, color: "var(--clap)", width: 24, textAlign: "center" }}>{swing}%</span>
       </div>
 
       {/* Kit */}
-      <div className="h-10 flex items-center gap-0 border-r border-[rgba(255,255,255,0.06)]">
-        <span className="text-[9px] text-[var(--dim)] tracking-[2px] px-3">KIT</span>
-        <div className="flex h-10">
-          {kits.map((k, i) => (
-            <button
-              key={k}
-              onClick={() => setKit(k)}
-              className="h-10 px-3 text-[9px] tracking-[1px] uppercase cursor-pointer transition-all duration-100"
-              style={{
-                background: kit === k ? "var(--tom)" : "transparent",
-                color: kit === k ? "#fff" : "var(--dim)",
-                border: "none",
-                borderLeft: "1px solid rgba(255,255,255,0.08)",
-              }}
-            >
-              {k}
-            </button>
-          ))}
-        </div>
+      <div style={{ ...section, padding: 0 }}>
+        <span style={{ ...label, padding: "0 12px" }}>KIT</span>
+        {kits.map((k) => (
+          <button
+            key={k}
+            onClick={() => setKit(k)}
+            style={{
+              height: 40,
+              padding: "0 12px",
+              fontSize: 9,
+              letterSpacing: 1,
+              textTransform: "uppercase",
+              cursor: "pointer",
+              border: "none",
+              borderLeft: "1px solid rgba(255,255,255,0.08)",
+              background: kit === k ? "var(--tom)" : "transparent",
+              color: kit === k ? "#fff" : "#666",
+              fontFamily: "var(--font-mono)",
+              fontWeight: 600,
+            }}
+          >
+            {k}
+          </button>
+        ))}
       </div>
 
       {/* Bars */}
-      <div className="h-10 flex items-center gap-1 px-2 border-r border-[rgba(255,255,255,0.06)]">
-        <button onClick={onRemoveBar} className="w-5 h-6 text-[var(--dim)] hover:text-white bg-transparent border-0 cursor-pointer flex items-center justify-center" disabled={stepCount <= 4}><Minus size={10} /></button>
-        <span className="text-[9px] w-10 text-center" style={{ color: "var(--perc)" }}>{bars} BAR{bars !== 1 ? "S" : ""}</span>
-        <button onClick={onAddBar} className="w-5 h-6 text-[var(--dim)] hover:text-white bg-transparent border-0 cursor-pointer flex items-center justify-center" disabled={stepCount >= 256}><Plus size={10} /></button>
+      <div style={{ ...section, gap: 4, padding: "0 8px" }}>
+        <button onClick={onRemoveBar} style={{ ...iconBtn, opacity: stepCount <= 4 ? 0.3 : 1 }} disabled={stepCount <= 4}><Minus size={10} /></button>
+        <span style={{ fontSize: 9, color: "var(--perc)", width: 40, textAlign: "center" }}>{bars} BAR{bars !== 1 ? "S" : ""}</span>
+        <button onClick={onAddBar} style={{ ...iconBtn, opacity: stepCount >= 256 ? 0.3 : 1 }} disabled={stepCount >= 256}><Plus size={10} /></button>
       </div>
 
       {/* Zoom */}
-      <div className="h-10 flex items-center gap-1 px-2 border-r border-[rgba(255,255,255,0.06)]">
-        <button onClick={onZoomOut} className="w-5 h-6 text-[var(--dim)] hover:text-white bg-transparent border-0 cursor-pointer flex items-center justify-center"><ZoomOut size={10} /></button>
-        <span className="text-[9px] w-6 text-center" style={{ color: "var(--dim)" }}>{Math.round(zoom * 100)}%</span>
-        <button onClick={onZoomIn} className="w-5 h-6 text-[var(--dim)] hover:text-white bg-transparent border-0 cursor-pointer flex items-center justify-center"><ZoomIn size={10} /></button>
+      <div style={{ ...section, gap: 4, padding: "0 8px" }}>
+        <button onClick={onZoomOut} style={iconBtn}><ZoomOut size={10} /></button>
+        <span style={{ fontSize: 9, color: "#666", width: 24, textAlign: "center" }}>{Math.round(zoom * 100)}%</span>
+        <button onClick={onZoomIn} style={iconBtn}><ZoomIn size={10} /></button>
       </div>
 
       {/* Tap */}
-      <button onClick={tapTempo} className={btnBase + " h-10 border-0 border-r border-r-[rgba(255,255,255,0.06)]"}>
+      <button onClick={tapTempo} style={{ ...actionBtn, borderLeft: "none", borderRight: "1px solid rgba(255,255,255,0.08)" }}>
         <Zap size={10} /> TAP
       </button>
 
       {/* Presets */}
-      <div className="relative h-10" ref={presetsRef}>
-        <button onClick={() => setPresetsOpen(!presetsOpen)} className={btnBase + " h-10 border-0 border-r border-r-[rgba(255,255,255,0.06)]"}>
+      <div ref={presetsRef} style={{ position: "relative", height: 40 }}>
+        <button onClick={() => setPresetsOpen(!presetsOpen)} style={{ ...actionBtn, borderLeft: "none", borderRight: "1px solid rgba(255,255,255,0.08)" }}>
           PRESETS <ChevronDown size={10} />
         </button>
         {presetsOpen && (
-          <div className="absolute top-full left-0 bg-[var(--surface)] border border-[rgba(255,255,255,0.08)] py-0 min-w-[180px] z-50">
+          <div style={{
+            position: "absolute",
+            top: "100%",
+            left: 0,
+            background: "var(--surface)",
+            border: "1px solid rgba(255,255,255,0.08)",
+            minWidth: 180,
+            zIndex: 50,
+          }}>
             {PRESETS.map((p, i) => (
               <button
                 key={p.name}
                 onClick={() => { loadPreset(i); setPresetsOpen(false); }}
-                className="block w-full text-left px-3 py-2 text-[10px] tracking-[1px] text-[var(--text)] hover:bg-[rgba(255,255,255,0.04)] transition-colors border-0 bg-transparent cursor-pointer border-b border-b-[rgba(255,255,255,0.04)]"
-                style={{ fontFamily: "var(--font-mono)" }}
+                style={{
+                  display: "block",
+                  width: "100%",
+                  textAlign: "left",
+                  padding: "8px 12px",
+                  fontSize: 10,
+                  letterSpacing: 1,
+                  color: "var(--text)",
+                  background: "transparent",
+                  border: "none",
+                  borderBottom: "1px solid rgba(255,255,255,0.04)",
+                  cursor: "pointer",
+                  fontFamily: "var(--font-mono)",
+                }}
+                onMouseEnter={(e) => (e.currentTarget.style.background = "rgba(255,255,255,0.04)")}
+                onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
               >
                 {p.name}
               </button>
@@ -171,19 +257,19 @@ export function Controls({
       </div>
 
       {/* Spacer */}
-      <div className="flex-1 hidden md:block" />
+      <div style={{ flex: 1 }} className="hidden md:block" />
 
       {/* Right actions */}
-      <button onClick={randomize} className={btnBase + " h-10 border-0 border-l border-l-[rgba(255,255,255,0.06)]"}>
+      <button onClick={randomize} style={actionBtn} onMouseEnter={(e) => (e.currentTarget.style.color = "#fff")} onMouseLeave={(e) => (e.currentTarget.style.color = "#888")}>
         <Dice5 size={11} /> RNG
       </button>
-      <button onClick={clearAll} className={btnBase + " h-10 border-0 border-l border-l-[rgba(255,255,255,0.06)]"}>
+      <button onClick={clearAll} style={actionBtn} onMouseEnter={(e) => (e.currentTarget.style.color = "#fff")} onMouseLeave={(e) => (e.currentTarget.style.color = "#888")}>
         <Trash2 size={11} /> CLR
       </button>
-      <button onClick={shareURL} className={btnBase + " h-10 border-0 border-l border-l-[rgba(255,255,255,0.06)] text-[var(--hihat)]"}>
+      <button onClick={shareURL} style={{ ...actionBtn, color: "var(--hihat)" }}>
         <Link size={11} /> SHARE
       </button>
-      <button onClick={handleExport} className={btnBase + " h-10 border-0 border-l border-l-[rgba(255,255,255,0.06)] text-[var(--clap)]"}>
+      <button onClick={handleExport} style={{ ...actionBtn, color: "var(--clap)" }}>
         <Download size={11} /> WAV
       </button>
     </div>
