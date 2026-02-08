@@ -160,7 +160,7 @@ export function Controls({
               gap: 4,
             }}
           >
-            {kit}
+            {kitLabels[kit]}
           </button>
 
           <div style={{ flex: 1 }} />
