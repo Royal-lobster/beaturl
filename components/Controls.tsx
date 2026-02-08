@@ -342,8 +342,8 @@ export function Controls({
               cursor: "pointer",
               border: "none",
               borderLeft: "1px solid rgba(255,255,255,0.08)",
-              background: kit === k ? "var(--tom)" : "transparent",
-              color: kit === k ? "#fff" : "#666",
+              background: kit === k ? "var(--tom)" : "rgba(255,255,255,0.04)",
+              color: kit === k ? "#fff" : "#aaa",
               fontFamily: "var(--font-mono)",
               fontWeight: 600,
             }}
