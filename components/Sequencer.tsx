@@ -21,6 +21,9 @@ export function Sequencer() {
   const [volumes, setVolumes] = useState<number[]>([...DEFAULT_VOLUMES]);
   const [playing, setPlaying] = useState(false);
   const [currentStep, setCurrentStep] = useState(-1);
+  const [zoom, setZoom] = useState(1); // 1 = default (fit), >1 = zoomed in, <1 = zoomed out
+
+  const stepCount = grid[0]?.length || STEPS;
 
   const playingRef = useRef(false);
   const stepRef = useRef(-1);
@@ -52,12 +55,14 @@ export function Sequencer() {
   }, []);
 
   const updateURL = useCallback(() => {
+    const g = gridRef.current;
     const data = encodeState({
-      grid: gridRef.current,
+      grid: g,
       bpm: bpmRef.current,
       swing: swingRef.current,
       kit: kitRef.current,
       volumes: volumesRef.current,
+      stepCount: g[0]?.length || STEPS,
     });
     window.history.replaceState(null, "", "#" + data);
   }, []);
@@ -66,7 +71,8 @@ export function Sequencer() {
 
   const tick = useCallback(() => {
     if (!playingRef.current) return;
-    stepRef.current = (stepRef.current + 1) % STEPS;
+    const steps = gridRef.current[0]?.length || STEPS;
+    stepRef.current = (stepRef.current + 1) % steps;
     const s = stepRef.current;
     setCurrentStep(s);
 
@@ -126,16 +132,17 @@ export function Sequencer() {
   }, []);
 
   const clearAll = useCallback(() => {
-    setGrid(TRACKS.map(() => new Array(STEPS).fill(0)));
+    setGrid((prev) => TRACKS.map(() => new Array(prev[0].length).fill(0)));
   }, []);
 
   const randomize = useCallback(() => {
-    setGrid(
-      TRACKS.map((_, r) => {
+    setGrid((prev) => {
+      const len = prev[0].length;
+      return TRACKS.map((_, r) => {
         const density = r === 0 ? 0.3 : r === 1 ? 0.2 : r === 2 ? 0.5 : 0.12;
-        return new Array(STEPS).fill(0).map(() => (Math.random() < density ? 1 : 0));
-      })
-    );
+        return new Array(len).fill(0).map(() => (Math.random() < density ? 1 : 0));
+      });
+    });
   }, []);
 
   const loadPreset = useCallback((idx: number) => {
@@ -146,6 +153,34 @@ export function Sequencer() {
     setKit(p.kit);
     toastManager.add({ title: `Loaded: ${p.name}` });
   }, []);
+
+  const addBar = useCallback(() => {
+    setGrid((prev) => {
+      const currentLen = prev[0].length;
+      if (currentLen >= 64) return prev;
+      return prev.map((row) => [...row, 0, 0, 0, 0]);
+    });
+  }, []);
+
+  const removeBar = useCallback(() => {
+    setGrid((prev) => {
+      const currentLen = prev[0].length;
+      if (currentLen <= 4) return prev;
+      return prev.map((row) => row.slice(0, currentLen - 4));
+    });
+  }, []);
+
+  const handleZoomIn = useCallback(() => {
+    setZoom((z) => Math.min(3, z + 0.25));
+  }, []);
+
+  const handleZoomOut = useCallback(() => {
+    setZoom((z) => Math.max(0.25, z - 0.25));
+  }, []);
+
+  // Calculate cell min-width based on zoom. At zoom=1 with 16 steps, no min-width (flex fills).
+  // For zoom != 1, set a pixel min-width.
+  const cellMinWidth = zoom !== 1 ? Math.round(40 * zoom) : undefined;
 
   const shareURL = useCallback(async () => {
     updateURL();
@@ -202,6 +237,9 @@ export function Sequencer() {
         clearAll={clearAll} randomize={randomize}
         shareURL={shareURL} handleExport={handleExport}
         tapTempo={tapTempo} loadPreset={loadPreset}
+        stepCount={stepCount}
+        onAddBar={addBar} onRemoveBar={removeBar}
+        zoom={zoom} onZoomIn={handleZoomIn} onZoomOut={handleZoomOut}
       />
 
       {/* Grid area */}
@@ -214,12 +252,13 @@ export function Sequencer() {
           <div className="w-[60px] md:w-[80px] shrink-0" />
           <div className="w-[32px] md:w-[40px] shrink-0" />
           <div className="flex-1 flex gap-px px-px">
-            {Array.from({ length: STEPS }, (_, i) => (
+            {Array.from({ length: stepCount }, (_, i) => (
               <div
                 key={i}
                 className="flex-1 text-center text-[7px] md:text-[8px] leading-4"
                 style={{
                   fontFamily: "var(--font-mono)",
+                  minWidth: cellMinWidth ? `${cellMinWidth}px` : undefined,
                   color: currentStep === i ? "var(--hihat)" : i % 4 === 0 ? "var(--dim)" : "rgba(255,255,255,0.15)",
                   textShadow: currentStep === i ? "0 0 8px var(--hihat)" : "none",
                 }}
@@ -242,6 +281,7 @@ export function Sequencer() {
               volume={volumes[r]}
               onToggle={toggleCell}
               onVolumeChange={setVolume}
+              cellMinWidth={cellMinWidth}
             />
           ))}
         </div>

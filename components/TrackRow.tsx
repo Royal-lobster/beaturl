@@ -1,7 +1,6 @@
 "use client";
 
 import { memo, useCallback } from "react";
-import { STEPS } from "@/lib/audio";
 
 interface TrackRowProps {
   track: { name: string; key: string; color: string };
@@ -11,10 +10,11 @@ interface TrackRowProps {
   volume: number;
   onToggle: (r: number, c: number) => void;
   onVolumeChange: (r: number, v: number) => void;
+  cellMinWidth?: number;
 }
 
 export const TrackRow = memo(function TrackRow({
-  track, row, rowIndex, currentStep, volume, onToggle, onVolumeChange,
+  track, row, rowIndex, currentStep, volume, onToggle, onVolumeChange, cellMinWidth,
 }: TrackRowProps) {
   const handleVolume = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -57,6 +57,7 @@ export const TrackRow = memo(function TrackRow({
               onClick={() => onToggle(rowIndex, c)}
               className="flex-1 relative border-0 cursor-pointer transition-all duration-[50ms]"
               style={{
+                minWidth: cellMinWidth ? `${cellMinWidth}px` : undefined,
                 background: isOn
                   ? track.color
                   : isBeatStart

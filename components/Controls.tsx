@@ -4,8 +4,8 @@ import { useState, useRef, useEffect } from "react";
 import { PRESETS } from "@/lib/presets";
 import type { KitName } from "@/lib/audio";
 import {
-  Play, Square, Minus, Plus, Pointer, ChevronDown,
-  Dice5, Trash2, Link, Download, Zap,
+  Play, Square, Minus, Plus, ChevronDown,
+  Dice5, Trash2, Link, Download, Zap, ZoomIn, ZoomOut,
 } from "lucide-react";
 
 interface ControlsProps {
@@ -23,6 +23,12 @@ interface ControlsProps {
   handleExport: () => void;
   tapTempo: () => void;
   loadPreset: (idx: number) => void;
+  stepCount: number;
+  onAddBar: () => void;
+  onRemoveBar: () => void;
+  zoom: number;
+  onZoomIn: () => void;
+  onZoomOut: () => void;
 }
 
 const kits: KitName[] = ["808", "acoustic", "electronic"];
@@ -31,6 +37,8 @@ export function Controls({
   bpm, setBpm, swing, setSwing, kit, setKit,
   playing, togglePlay, clearAll, randomize,
   shareURL, handleExport, tapTempo, loadPreset,
+  stepCount, onAddBar, onRemoveBar,
+  zoom, onZoomIn, onZoomOut,
 }: ControlsProps) {
   const [presetsOpen, setPresetsOpen] = useState(false);
   const presetsRef = useRef<HTMLDivElement>(null);
@@ -46,6 +54,8 @@ export function Controls({
   }, []);
 
   const btnBase = "h-8 px-3 text-[10px] tracking-[1.5px] uppercase font-semibold border border-[rgba(255,255,255,0.08)] bg-transparent text-[var(--dim)] hover:text-white hover:bg-[rgba(255,255,255,0.04)] transition-all duration-100 cursor-pointer whitespace-nowrap flex items-center gap-1.5";
+
+  const bars = stepCount / 4;
 
   return (
     <div
@@ -117,6 +127,20 @@ export function Controls({
             {k}
           </button>
         ))}
+      </div>
+
+      {/* Bars */}
+      <div className="h-10 flex items-center gap-1 px-2 border-r border-[rgba(255,255,255,0.06)]">
+        <button onClick={onRemoveBar} className="w-5 h-6 text-[var(--dim)] hover:text-white bg-transparent border-0 cursor-pointer flex items-center justify-center" disabled={stepCount <= 4}><Minus size={10} /></button>
+        <span className="text-[9px] w-10 text-center" style={{ color: "var(--perc)" }}>{bars} BAR{bars !== 1 ? "S" : ""}</span>
+        <button onClick={onAddBar} className="w-5 h-6 text-[var(--dim)] hover:text-white bg-transparent border-0 cursor-pointer flex items-center justify-center" disabled={stepCount >= 64}><Plus size={10} /></button>
+      </div>
+
+      {/* Zoom */}
+      <div className="h-10 flex items-center gap-1 px-2 border-r border-[rgba(255,255,255,0.06)]">
+        <button onClick={onZoomOut} className="w-5 h-6 text-[var(--dim)] hover:text-white bg-transparent border-0 cursor-pointer flex items-center justify-center"><ZoomOut size={10} /></button>
+        <span className="text-[9px] w-6 text-center" style={{ color: "var(--dim)" }}>{Math.round(zoom * 100)}%</span>
+        <button onClick={onZoomIn} className="w-5 h-6 text-[var(--dim)] hover:text-white bg-transparent border-0 cursor-pointer flex items-center justify-center"><ZoomIn size={10} /></button>
       </div>
 
       {/* Tap */}

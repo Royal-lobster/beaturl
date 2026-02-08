@@ -327,8 +327,9 @@ export async function exportToWav(
   kit: KitName,
   volumes: number[]
 ): Promise<Blob> {
+  const stepCount = grid[0]?.length || STEPS;
   const stepDuration = 60 / (bpm * 4);
-  const totalDuration = STEPS * stepDuration + 1; // extra second for decay
+  const totalDuration = stepCount * stepDuration + 1; // extra second for decay
   const sampleRate = 44100;
   const offCtx = new OfflineAudioContext(2, totalDuration * sampleRate, sampleRate);
 
@@ -348,7 +349,7 @@ export async function exportToWav(
   }
 
   // Simplified: just schedule kick/snare/hihat/etc using the 808 synths inline
-  for (let step = 0; step < STEPS; step++) {
+  for (let step = 0; step < stepCount; step++) {
     const baseTime = step * stepDuration;
     const swingOffset = step % 2 === 1 ? stepDuration * (swing / 100) * 0.66 : 0;
     const t = baseTime + swingOffset;
