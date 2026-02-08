@@ -9,7 +9,7 @@ export interface BeatState {
   stepCount: number;
 }
 
-const KIT_INDEX: KitName[] = ["808", "acoustic", "electronic"];
+const KIT_INDEX: KitName[] = ["808", "acoustic", "electronic", "lofi", "industrial", "minimal"];
 
 // Convert a row of 0/1 values to a hex string
 function rowToHex(row: number[]): string {

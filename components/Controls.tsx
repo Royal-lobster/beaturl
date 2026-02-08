@@ -31,7 +31,7 @@ interface ControlsProps {
   onZoomOut: () => void;
 }
 
-const kits: KitName[] = ["808", "acoustic", "electronic"];
+const kits: KitName[] = ["808", "acoustic", "electronic", "lofi", "industrial", "minimal"];
 
 /* Shared styles as objects to avoid Tailwind class conflicts */
 const section: React.CSSProperties = {

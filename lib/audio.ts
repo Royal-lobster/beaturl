@@ -1,6 +1,6 @@
 // Audio engine with multiple drum kits using Web Audio API synthesis
 
-export type KitName = "808" | "acoustic" | "electronic";
+export type KitName = "808" | "acoustic" | "electronic" | "lofi" | "industrial" | "minimal";
 
 let audioCtx: AudioContext | null = null;
 let masterGain: GainNode | null = null;
@@ -295,10 +295,301 @@ const kitElectronic = {
   cowbell(t: number, vol: number) { kit808.cowbell(t, vol); },
 };
 
+// ====== Lo-fi Kit ======
+const kitLofi = {
+  kick(t: number, vol: number) {
+    const c = getAudioContext(), out = getOutput();
+    const o = c.createOscillator(), g = c.createGain();
+    o.type = "sine";
+    o.frequency.setValueAtTime(78, t);
+    o.frequency.exponentialRampToValueAtTime(30, t + 0.1);
+    o.detune.value = -15;
+    g.gain.setValueAtTime(vol * 0.7, t);
+    g.gain.exponentialRampToValueAtTime(0.001, t + 0.15);
+    o.connect(g); g.connect(out);
+    o.start(t); o.stop(t + 0.15);
+  },
+  snare(t: number, vol: number) {
+    const c = getAudioContext(), out = getOutput();
+    const n = c.createBufferSource(), f = c.createBiquadFilter(), g = c.createGain();
+    n.buffer = noiseBuffer(c, 2000);
+    f.type = "bandpass"; f.frequency.value = 2500; f.Q.value = 1.5;
+    g.gain.setValueAtTime(vol * 0.35, t);
+    g.gain.exponentialRampToValueAtTime(0.001, t + 0.08);
+    n.connect(f); f.connect(g); g.connect(out);
+    n.start(t); n.stop(t + 0.08);
+  },
+  hihat(t: number, vol: number) {
+    const c = getAudioContext(), out = getOutput();
+    const n = c.createBufferSource(), f = c.createBiquadFilter(), g = c.createGain();
+    n.buffer = noiseBuffer(c, 1024);
+    f.type = "highpass"; f.frequency.value = 7000;
+    g.gain.setValueAtTime(vol * 0.12, t);
+    g.gain.exponentialRampToValueAtTime(0.001, t + 0.04);
+    n.connect(f); f.connect(g); g.connect(out);
+    n.start(t); n.stop(t + 0.04);
+  },
+  clap(t: number, vol: number) {
+    const c = getAudioContext(), out = getOutput();
+    const n = c.createBufferSource(), f = c.createBiquadFilter(), g = c.createGain();
+    n.buffer = noiseBuffer(c, 2000);
+    f.type = "bandpass"; f.frequency.value = 1800; f.Q.value = 2;
+    g.gain.setValueAtTime(vol * 0.3, t);
+    g.gain.exponentialRampToValueAtTime(0.001, t + 0.07);
+    n.connect(f); f.connect(g); g.connect(out);
+    n.start(t); n.stop(t + 0.07);
+  },
+  tom(t: number, vol: number) {
+    const c = getAudioContext(), out = getOutput();
+    const o = c.createOscillator(), g = c.createGain();
+    o.type = "sine";
+    o.frequency.setValueAtTime(100, t);
+    o.frequency.exponentialRampToValueAtTime(50, t + 0.2);
+    g.gain.setValueAtTime(vol * 0.4, t);
+    g.gain.exponentialRampToValueAtTime(0.001, t + 0.25);
+    o.connect(g); g.connect(out);
+    o.start(t); o.stop(t + 0.25);
+  },
+  rim(t: number, vol: number) {
+    const c = getAudioContext(), out = getOutput();
+    const o = c.createOscillator(), g = c.createGain();
+    o.type = "triangle";
+    o.frequency.setValueAtTime(900, t);
+    g.gain.setValueAtTime(vol * 0.15, t);
+    g.gain.exponentialRampToValueAtTime(0.001, t + 0.02);
+    o.connect(g); g.connect(out);
+    o.start(t); o.stop(t + 0.02);
+  },
+  perc(t: number, vol: number) {
+    const c = getAudioContext(), out = getOutput();
+    const o = c.createOscillator(), f = c.createBiquadFilter(), g = c.createGain();
+    o.type = "sine";
+    o.frequency.setValueAtTime(700, t);
+    o.frequency.exponentialRampToValueAtTime(400, t + 0.03);
+    f.type = "lowpass"; f.frequency.value = 1500;
+    g.gain.setValueAtTime(vol * 0.25, t);
+    g.gain.exponentialRampToValueAtTime(0.001, t + 0.06);
+    o.connect(f); f.connect(g); g.connect(out);
+    o.start(t); o.stop(t + 0.06);
+  },
+  cowbell(t: number, vol: number) {
+    const c = getAudioContext(), out = getOutput();
+    const o1 = c.createOscillator(), o2 = c.createOscillator();
+    const g = c.createGain(), f = c.createBiquadFilter();
+    o1.type = "sine"; o1.frequency.value = 620;
+    o2.type = "sine"; o2.frequency.value = 430;
+    f.type = "lowpass"; f.frequency.value = 2000;
+    g.gain.setValueAtTime(vol * 0.2, t);
+    g.gain.exponentialRampToValueAtTime(0.001, t + 0.1);
+    o1.connect(f); o2.connect(f); f.connect(g); g.connect(out);
+    o1.start(t); o2.start(t); o1.stop(t + 0.1); o2.stop(t + 0.1);
+  },
+};
+
+// ====== Industrial Kit ======
+const kitIndustrial = {
+  kick(t: number, vol: number) {
+    const c = getAudioContext(), out = getOutput();
+    const o = c.createOscillator(), g = c.createGain();
+    const dist = c.createWaveShaper();
+    const curve = new Float32Array(256);
+    for (let i = 0; i < 256; i++) { const x = (i / 128) - 1; curve[i] = Math.tanh(x * 4); }
+    dist.curve = curve;
+    o.type = "sine";
+    o.frequency.setValueAtTime(180, t);
+    o.frequency.exponentialRampToValueAtTime(25, t + 0.1);
+    g.gain.setValueAtTime(vol * 1.0, t);
+    g.gain.exponentialRampToValueAtTime(0.001, t + 0.25);
+    o.connect(dist); dist.connect(g); g.connect(out);
+    o.start(t); o.stop(t + 0.25);
+  },
+  snare(t: number, vol: number) {
+    const c = getAudioContext(), out = getOutput();
+    const n = c.createBufferSource(), ng = c.createGain();
+    const dist = c.createWaveShaper();
+    const curve = new Float32Array(256);
+    for (let i = 0; i < 256; i++) { const x = (i / 128) - 1; curve[i] = Math.tanh(x * 6); }
+    dist.curve = curve;
+    n.buffer = noiseBuffer(c, 5000);
+    ng.gain.setValueAtTime(vol * 0.7, t);
+    ng.gain.exponentialRampToValueAtTime(0.001, t + 0.15);
+    n.connect(dist); dist.connect(ng); ng.connect(out);
+    n.start(t); n.stop(t + 0.15);
+  },
+  hihat(t: number, vol: number) {
+    const c = getAudioContext(), out = getOutput();
+    const n = c.createBufferSource(), f = c.createBiquadFilter(), g = c.createGain();
+    n.buffer = noiseBuffer(c, 3000);
+    f.type = "peaking"; f.frequency.value = 6000; f.gain.value = 12; f.Q.value = 5;
+    g.gain.setValueAtTime(vol * 0.4, t);
+    g.gain.exponentialRampToValueAtTime(0.001, t + 0.05);
+    n.connect(f); f.connect(g); g.connect(out);
+    n.start(t); n.stop(t + 0.05);
+  },
+  clap(t: number, vol: number) {
+    const c = getAudioContext(), out = getOutput();
+    const dist = c.createWaveShaper();
+    const curve = new Float32Array(256);
+    for (let i = 0; i < 256; i++) { const x = (i / 128) - 1; curve[i] = Math.tanh(x * 5); }
+    dist.curve = curve;
+    for (let i = 0; i < 3; i++) {
+      const n = c.createBufferSource(), g = c.createGain();
+      n.buffer = noiseBuffer(c, 1500);
+      g.gain.setValueAtTime(vol * 0.5, t + i * 0.012);
+      g.gain.exponentialRampToValueAtTime(0.001, t + i * 0.012 + 0.04);
+      n.connect(dist); dist.connect(g); g.connect(out);
+      n.start(t + i * 0.012); n.stop(t + i * 0.012 + 0.04);
+    }
+  },
+  tom(t: number, vol: number) {
+    const c = getAudioContext(), out = getOutput();
+    const o = c.createOscillator(), g = c.createGain();
+    o.type = "sawtooth";
+    o.frequency.setValueAtTime(80, t);
+    o.frequency.exponentialRampToValueAtTime(30, t + 0.1);
+    g.gain.setValueAtTime(vol * 0.6, t);
+    g.gain.exponentialRampToValueAtTime(0.001, t + 0.12);
+    o.connect(g); g.connect(out);
+    o.start(t); o.stop(t + 0.12);
+  },
+  rim(t: number, vol: number) {
+    const c = getAudioContext(), out = getOutput();
+    const o = c.createOscillator(), g = c.createGain();
+    o.type = "square";
+    o.frequency.setValueAtTime(3000, t);
+    o.frequency.exponentialRampToValueAtTime(1500, t + 0.01);
+    g.gain.setValueAtTime(vol * 0.4, t);
+    g.gain.exponentialRampToValueAtTime(0.001, t + 0.015);
+    o.connect(g); g.connect(out);
+    o.start(t); o.stop(t + 0.015);
+  },
+  perc(t: number, vol: number) {
+    const c = getAudioContext(), out = getOutput();
+    const carrier = c.createOscillator(), mod = c.createOscillator();
+    const modGain = c.createGain(), g = c.createGain();
+    mod.type = "sine"; mod.frequency.value = 1200;
+    modGain.gain.value = 800;
+    carrier.type = "sine"; carrier.frequency.value = 400;
+    mod.connect(modGain); modGain.connect(carrier.frequency);
+    g.gain.setValueAtTime(vol * 0.4, t);
+    g.gain.exponentialRampToValueAtTime(0.001, t + 0.05);
+    carrier.connect(g); g.connect(out);
+    mod.start(t); carrier.start(t); mod.stop(t + 0.05); carrier.stop(t + 0.05);
+  },
+  cowbell(t: number, vol: number) {
+    const c = getAudioContext(), out = getOutput();
+    const o1 = c.createOscillator(), o2 = c.createOscillator();
+    const g = c.createGain();
+    o1.type = "square"; o1.frequency.value = 850;
+    o2.type = "square"; o2.frequency.value = 620;
+    o1.detune.value = 30; o2.detune.value = -25;
+    g.gain.setValueAtTime(vol * 0.35, t);
+    g.gain.exponentialRampToValueAtTime(0.001, t + 0.1);
+    o1.connect(g); o2.connect(g); g.connect(out);
+    o1.start(t); o2.start(t); o1.stop(t + 0.1); o2.stop(t + 0.1);
+  },
+};
+
+// ====== Minimal Kit ======
+const kitMinimal = {
+  kick(t: number, vol: number) {
+    const c = getAudioContext(), out = getOutput();
+    const o = c.createOscillator(), g = c.createGain();
+    o.type = "sine";
+    o.frequency.setValueAtTime(120, t);
+    o.frequency.exponentialRampToValueAtTime(35, t + 0.08);
+    g.gain.setValueAtTime(vol * 0.85, t);
+    g.gain.exponentialRampToValueAtTime(0.001, t + 0.15);
+    o.connect(g); g.connect(out);
+    o.start(t); o.stop(t + 0.15);
+  },
+  snare(t: number, vol: number) {
+    const c = getAudioContext(), out = getOutput();
+    const n = c.createBufferSource(), nf = c.createBiquadFilter(), ng = c.createGain();
+    n.buffer = noiseBuffer(c, 2000);
+    nf.type = "highpass"; nf.frequency.value = 3000;
+    ng.gain.setValueAtTime(vol * 0.4, t);
+    ng.gain.exponentialRampToValueAtTime(0.001, t + 0.06);
+    n.connect(nf); nf.connect(ng); ng.connect(out);
+    n.start(t); n.stop(t + 0.06);
+    const o = c.createOscillator(), og = c.createGain();
+    o.type = "sine"; o.frequency.setValueAtTime(220, t);
+    og.gain.setValueAtTime(vol * 0.3, t);
+    og.gain.exponentialRampToValueAtTime(0.001, t + 0.04);
+    o.connect(og); og.connect(out);
+    o.start(t); o.stop(t + 0.04);
+  },
+  hihat(t: number, vol: number) {
+    const c = getAudioContext(), out = getOutput();
+    const n = c.createBufferSource(), f = c.createBiquadFilter(), g = c.createGain();
+    n.buffer = noiseBuffer(c, 512);
+    f.type = "highpass"; f.frequency.value = 10000;
+    g.gain.setValueAtTime(vol * 0.2, t);
+    g.gain.exponentialRampToValueAtTime(0.001, t + 0.02);
+    n.connect(f); f.connect(g); g.connect(out);
+    n.start(t); n.stop(t + 0.02);
+  },
+  clap(t: number, vol: number) {
+    const c = getAudioContext(), out = getOutput();
+    const n = c.createBufferSource(), f = c.createBiquadFilter(), g = c.createGain();
+    n.buffer = noiseBuffer(c, 2000);
+    f.type = "bandpass"; f.frequency.value = 1500; f.Q.value = 1;
+    g.gain.setValueAtTime(vol * 0.45, t);
+    g.gain.exponentialRampToValueAtTime(0.001, t + 0.08);
+    n.connect(f); f.connect(g); g.connect(out);
+    n.start(t); n.stop(t + 0.08);
+  },
+  tom(t: number, vol: number) {
+    const c = getAudioContext(), out = getOutput();
+    const o = c.createOscillator(), g = c.createGain();
+    o.type = "sine";
+    o.frequency.setValueAtTime(150, t);
+    o.frequency.exponentialRampToValueAtTime(60, t + 0.12);
+    g.gain.setValueAtTime(vol * 0.5, t);
+    g.gain.exponentialRampToValueAtTime(0.001, t + 0.15);
+    o.connect(g); g.connect(out);
+    o.start(t); o.stop(t + 0.15);
+  },
+  rim(t: number, vol: number) {
+    const c = getAudioContext(), out = getOutput();
+    const o = c.createOscillator(), g = c.createGain();
+    o.type = "triangle";
+    o.frequency.setValueAtTime(1000, t);
+    g.gain.setValueAtTime(vol * 0.2, t);
+    g.gain.exponentialRampToValueAtTime(0.001, t + 0.015);
+    o.connect(g); g.connect(out);
+    o.start(t); o.stop(t + 0.015);
+  },
+  perc(t: number, vol: number) {
+    const c = getAudioContext(), out = getOutput();
+    const o = c.createOscillator(), g = c.createGain();
+    o.type = "sine";
+    o.frequency.setValueAtTime(500, t);
+    g.gain.setValueAtTime(vol * 0.3, t);
+    g.gain.exponentialRampToValueAtTime(0.001, t + 0.04);
+    o.connect(g); g.connect(out);
+    o.start(t); o.stop(t + 0.04);
+  },
+  cowbell(t: number, vol: number) {
+    const c = getAudioContext(), out = getOutput();
+    const o1 = c.createOscillator(), o2 = c.createOscillator();
+    const g = c.createGain();
+    o1.type = "sine"; o1.frequency.value = 800;
+    o2.type = "sine"; o2.frequency.value = 540;
+    g.gain.setValueAtTime(vol * 0.25, t);
+    g.gain.exponentialRampToValueAtTime(0.001, t + 0.1);
+    o1.connect(g); o2.connect(g); g.connect(out);
+    o1.start(t); o2.start(t); o1.stop(t + 0.1); o2.stop(t + 0.1);
+  },
+};
+
 export const KITS: Record<KitName, Record<string, (t: number, vol: number) => void>> = {
   "808": kit808,
   acoustic: kitAcoustic,
   electronic: kitElectronic,
+  lofi: kitLofi,
+  industrial: kitIndustrial,
+  minimal: kitMinimal,
 };
 
 export const TRACKS = [
