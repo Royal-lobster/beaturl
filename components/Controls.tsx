@@ -156,8 +156,8 @@ export function Controls({
               letterSpacing: 1,
               textTransform: "uppercase",
               fontFamily: "var(--font-mono)",
-              background: "var(--tom)",
-              color: "#fff",
+              background: "rgba(48, 209, 88, 0.15)",
+              color: "var(--tom)",
               gap: 4,
             }}
           >
