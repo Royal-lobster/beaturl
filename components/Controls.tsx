@@ -140,28 +140,6 @@ export function Controls({
             </span>
           </div>
 
-          <button
-            onClick={togglePlay}
-            style={{
-              ...section,
-              width: 56,
-              justifyContent: "center",
-              gap: 3,
-              border: "none",
-              borderRight: "1px solid rgba(255,255,255,0.08)",
-              cursor: "pointer",
-              fontSize: 8,
-              fontWeight: 700,
-              letterSpacing: 1.5,
-              textTransform: "uppercase",
-              fontFamily: "var(--font-mono)",
-              background: playing ? "var(--kick)" : "rgba(255,255,255,0.04)",
-              color: "#fff",
-            }}
-          >
-            {playing ? <><Square size={9} /> STOP</> : <><Play size={9} /> PLAY</>}
-          </button>
-
           <BpmControl bpm={bpm} setBpm={setBpm} />
 
           <button
@@ -198,6 +176,30 @@ export function Controls({
           <button onClick={onZoomOut} style={mobileActionBtn}><ZoomOut size={10} /></button>
           <span style={{ fontSize: 8, color: "#666", whiteSpace: "nowrap" }}>{Math.round(zoom * 100)}%</span>
           <button onClick={onZoomIn} style={mobileActionBtn}><ZoomIn size={10} /></button>
+
+          <div style={{ flex: 1 }} />
+
+          <button
+            onClick={togglePlay}
+            style={{
+              ...section,
+              width: 56,
+              justifyContent: "center",
+              gap: 3,
+              border: "none",
+              borderLeft: "1px solid rgba(255,255,255,0.08)",
+              cursor: "pointer",
+              fontSize: 8,
+              fontWeight: 700,
+              letterSpacing: 1.5,
+              textTransform: "uppercase",
+              fontFamily: "var(--font-mono)",
+              background: playing ? "var(--kick)" : "rgba(255,255,255,0.04)",
+              color: "#fff",
+            }}
+          >
+            {playing ? <><Square size={9} /> STOP</> : <><Play size={9} /> PLAY</>}
+          </button>
         </div>
 
         {/* Row 2: Actions */}
