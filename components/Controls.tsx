@@ -48,9 +48,7 @@ export function Controls({
       {/* Logo */}
       <span className="text-sm font-bold tracking-tight mr-2 hidden md:block" style={{
         fontFamily: "var(--font-display)",
-        background: "linear-gradient(135deg, var(--kick), var(--clap), var(--hihat))",
-        WebkitBackgroundClip: "text",
-        WebkitTextFillColor: "transparent",
+        color: "#fff",
       }}>BeatURL</span>
 
       {/* Play */}
