@@ -95,12 +95,17 @@ export function Controls({
   zoom, onZoomIn, onZoomOut,
 }: ControlsProps) {
   const [presetsOpen, setPresetsOpen] = useState(false);
+  const [mobilePresetsOpen, setMobilePresetsOpen] = useState(false);
   const presetsRef = useRef<HTMLDivElement>(null);
+  const mobilePresetsRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const handler = (e: MouseEvent) => {
       if (presetsRef.current && !presetsRef.current.contains(e.target as Node)) {
         setPresetsOpen(false);
+      }
+      if (mobilePresetsRef.current && !mobilePresetsRef.current.contains(e.target as Node)) {
+        setMobilePresetsOpen(false);
       }
     };
     document.addEventListener("mousedown", handler);
@@ -185,14 +190,13 @@ export function Controls({
           <button onClick={clearAll} style={mobileActionBtn} title="Clear"><Trash2 size={13} /></button>
           <button onClick={shareURL} style={{ ...mobileActionBtn, color: "var(--hihat)" }} title="Share"><Link size={13} /></button>
           <button onClick={handleExport} style={{ ...mobileActionBtn, color: "var(--clap)" }} title="Export WAV"><Download size={13} /></button>
-          <a href="https://github.com/Royal-lobster/beaturl" target="_blank" rel="noopener noreferrer" style={mobileActionBtn} title="GitHub"><Github size={13} /></a>
 
           {/* Presets */}
-          <div ref={presetsRef} style={{ position: "relative", height: 40 }}>
-            <button onClick={() => setPresetsOpen(!presetsOpen)} style={mobileActionBtn} title="Presets">
+          <div ref={mobilePresetsRef} style={{ position: "relative", height: 40 }}>
+            <button onClick={() => setMobilePresetsOpen(!mobilePresetsOpen)} style={mobileActionBtn} title="Presets">
               <ChevronDown size={13} />
             </button>
-            {presetsOpen && (
+            {mobilePresetsOpen && (
               <div style={{
                 position: "absolute",
                 top: "100%",
@@ -205,7 +209,7 @@ export function Controls({
                 {PRESETS.map((p, i) => (
                   <button
                     key={p.name}
-                    onClick={() => { loadPreset(i); setPresetsOpen(false); }}
+                    onClick={() => { loadPreset(i); setMobilePresetsOpen(false); }}
                     style={{
                       display: "block",
                       width: "100%",
@@ -243,6 +247,9 @@ export function Controls({
           <button onClick={onZoomOut} style={mobileActionBtn} title="Zoom Out"><ZoomOut size={11} /></button>
           <span style={{ fontSize: 8, color: "#666", whiteSpace: "nowrap" }}>{Math.round(zoom * 100)}%</span>
           <button onClick={onZoomIn} style={mobileActionBtn} title="Zoom In"><ZoomIn size={11} /></button>
+
+          <div style={{ flex: 1 }} />
+          <a href="https://github.com/Royal-lobster/beaturl" target="_blank" rel="noopener noreferrer" style={{ ...mobileActionBtn, color: "#888" }} title="GitHub"><Github size={13} /></a>
         </div>
       </div>
       </div>
