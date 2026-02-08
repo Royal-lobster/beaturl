@@ -144,6 +144,7 @@ export function Controls({
 
           <button
             onClick={cycleKit}
+            title={`Kit: ${kit}`}
             style={{
               ...section,
               padding: "0 8px",
@@ -318,6 +319,7 @@ export function Controls({
           <button
             key={k}
             onClick={() => setKit(k)}
+            title={k}
             style={{
               height: 40,
               padding: "0 12px",
@@ -411,16 +413,16 @@ export function Controls({
       </a>
 
       {/* Right actions */}
-      <button onClick={randomize} style={actionBtn} onMouseEnter={(e) => (e.currentTarget.style.color = "#fff")} onMouseLeave={(e) => (e.currentTarget.style.color = "#888")}>
+      <button onClick={randomize} title="Randomize" style={actionBtn} onMouseEnter={(e) => (e.currentTarget.style.color = "#fff")} onMouseLeave={(e) => (e.currentTarget.style.color = "#888")}>
         <Dice5 size={11} /> RNG
       </button>
-      <button onClick={clearAll} style={actionBtn} onMouseEnter={(e) => (e.currentTarget.style.color = "#fff")} onMouseLeave={(e) => (e.currentTarget.style.color = "#888")}>
+      <button onClick={clearAll} title="Clear All" style={actionBtn} onMouseEnter={(e) => (e.currentTarget.style.color = "#fff")} onMouseLeave={(e) => (e.currentTarget.style.color = "#888")}>
         <Trash2 size={11} /> CLR
       </button>
-      <button onClick={shareURL} style={{ ...actionBtn, color: "var(--hihat)" }}>
+      <button onClick={shareURL} title="Copy Share Link" style={{ ...actionBtn, color: "var(--hihat)" }}>
         <Link size={11} /> SHARE
       </button>
-      <button onClick={handleExport} style={{ ...actionBtn, color: "var(--clap)" }}>
+      <button onClick={handleExport} title="Export as WAV" style={{ ...actionBtn, color: "var(--clap)" }}>
         <Download size={11} /> WAV
       </button>
     </div>

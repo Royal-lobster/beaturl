@@ -39,7 +39,7 @@ export const TrackRow = memo(function TrackRow({
         className="w-[50px] md:w-[70px] shrink-0 flex flex-col items-center justify-center gap-0.5 cursor-pointer z-10"
         style={{ fontFamily: "var(--font-mono)", background: "#0e0e1a", position: "sticky", left: 0, borderRight: "1px solid rgba(255,255,255,0.04)" }}
         onClick={cycleVolume}
-        title={`${track.name} — Vol: ${Math.round(volume * 100)}% (click to cycle)`}
+        title={`${track.name} — Volume: ${Math.round(volume * 100)}% (tap to cycle)`}
       >
         <span
           className="text-[8px] md:text-[9px] tracking-[1px] font-bold uppercase leading-none"
