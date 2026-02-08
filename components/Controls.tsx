@@ -5,7 +5,7 @@ import { PRESETS } from "@/lib/presets";
 import type { KitName } from "@/lib/audio";
 import {
   Play, Square, Minus, Plus, ChevronDown,
-  Dice5, Trash2, Link, Download, ZoomIn, ZoomOut,
+  Dice5, Trash2, Link, Download, ZoomIn, ZoomOut, Github,
 } from "lucide-react";
 import { BpmControl } from "./BpmControl";
 
@@ -32,6 +32,7 @@ interface ControlsProps {
 }
 
 const kits: KitName[] = ["808", "acoustic", "electronic", "lofi", "industrial", "minimal"];
+const kitLabels: Record<KitName, string> = { "808": "808", acoustic: "ACOU", electronic: "ELEC", lofi: "LOFI", industrial: "INDL", minimal: "MINL" };
 
 /* Shared styles as objects to avoid Tailwind class conflicts */
 const section: React.CSSProperties = {
@@ -184,6 +185,7 @@ export function Controls({
           <button onClick={clearAll} style={mobileActionBtn} title="Clear"><Trash2 size={13} /></button>
           <button onClick={shareURL} style={{ ...mobileActionBtn, color: "var(--hihat)" }} title="Share"><Link size={13} /></button>
           <button onClick={handleExport} style={{ ...mobileActionBtn, color: "var(--clap)" }} title="Export WAV"><Download size={13} /></button>
+          <a href="https://github.com/Royal-lobster/beaturl" target="_blank" rel="noopener noreferrer" style={mobileActionBtn} title="GitHub"><Github size={13} /></a>
 
           {/* Presets */}
           <div ref={presetsRef} style={{ position: "relative", height: 40 }}>
@@ -324,7 +326,7 @@ export function Controls({
               fontWeight: 600,
             }}
           >
-            {k}
+            {kitLabels[k]}
           </button>
         ))}
       </div>
@@ -388,6 +390,18 @@ export function Controls({
 
       {/* Spacer */}
       <div style={{ flex: 1 }} />
+
+      {/* GitHub */}
+      <a
+        href="https://github.com/Royal-lobster/beaturl"
+        target="_blank"
+        rel="noopener noreferrer"
+        style={{ ...actionBtn, textDecoration: "none" }}
+        onMouseEnter={(e) => (e.currentTarget.style.color = "#fff")}
+        onMouseLeave={(e) => (e.currentTarget.style.color = "#888")}
+      >
+        <Github size={13} />
+      </a>
 
       {/* Right actions */}
       <button onClick={randomize} style={actionBtn} onMouseEnter={(e) => (e.currentTarget.style.color = "#fff")} onMouseLeave={(e) => (e.currentTarget.style.color = "#888")}>
