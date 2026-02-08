@@ -5,7 +5,7 @@ import { PRESETS } from "@/lib/presets";
 import type { KitName } from "@/lib/audio";
 import {
   Play, Square, Minus, Plus, ChevronDown,
-  Dice5, Trash2, Link, Download, ZoomIn, ZoomOut, Github,
+  Dice5, Trash2, Link, Download, ZoomIn, ZoomOut, Github, Drum,
 } from "lucide-react";
 import { BpmControl } from "./BpmControl";
 
@@ -161,7 +161,7 @@ export function Controls({
               gap: 4,
             }}
           >
-            {kitLabels[kit]}
+            <Drum size={11} /> {kitLabels[kit]}
           </button>
 
           <div style={{ flex: 1 }} />
