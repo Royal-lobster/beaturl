@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BeatURL — Share Beats via URL</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#0a0a0f;--surface:#12121a;--border:#1e1e2e;
+  --text:#e0e0e0;--dim:#666;
+}
+body{background:var(--bg);color:var(--text);font-family:'SF Mono',Monaco,'Cascadia Code',monospace;min-height:100vh;display:flex;flex-direction:column;align-items:center;padding:20px;user-select:none;-webkit-user-select:none}
+h1{font-size:1.6rem;letter-spacing:4px;margin:10px 0 4px}
+.subtitle{color:var(--dim);font-size:.7rem;letter-spacing:2px;margin-bottom:20px}
+.controls{display:flex;gap:12px;align-items:center;flex-wrap:wrap;justify-content:center;margin-bottom:20px}
+button{background:var(--surface);border:1px solid var(--border);color:var(--text);padding:8px 18px;border-radius:6px;cursor:pointer;font-family:inherit;font-size:.8rem;transition:all .15s}
+button:hover{border-color:#444;background:#1a1a2a}
+</style>
+</head>
+<body>
+
+<h1>BEATURL</h1>
+<p class="subtitle">ENCODE BEATS IN URLs</p>
+
+<div class="controls">
+  <button id="playBtn">▶ PLAY</button>
+  <button id="clearBtn">✕ CLEAR</button>
+</div>
+
+<div id="seq"></div>
+
+<script>
+const TRACKS = [
+  {name:'KICK',  synth:'kick'},
+  {name:'SNARE', synth:'snare'},
+  {name:'HIHAT', synth:'hihat'},
+  {name:'CLAP',  synth:'clap'},
+  {name:'TOM',   synth:'tom'},
+  {name:'RIM',   synth:'rim'},
+];
+const STEPS = 16;
+const grid = TRACKS.map(()=>new Array(STEPS).fill(0));
+let bpm = 120, playing = false, step = -1;
+</script>
+</body>
+</html>
