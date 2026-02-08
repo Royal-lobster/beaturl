@@ -135,7 +135,6 @@ export function BpmControl({ bpm, setBpm }: BpmControlProps) {
           alignItems: "center",
           gap: 4,
           padding: "0 10px",
-          borderRight: "1px solid rgba(255,255,255,0.08)",
           cursor: mode === "edit" ? "text" : "ew-resize",
           userSelect: "none",
           outline: "none",
