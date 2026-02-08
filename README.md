@@ -1,40 +1,35 @@
-# 🥁 BeatURL
+# BeatURL 🥁
 
-A step sequencer / drum machine where the entire beat is encoded in the URL. Make a beat → share the link → anyone hears it instantly.
+> **Share beats via URL** — a drum machine that encodes your entire pattern in the URL hash.
 
-**No server. No database. Just a URL.**
+Create drum patterns, switch between kits, add swing, and share your beat by simply copying the URL. No account needed, no database, no backend.
 
 ## Features
 
-- **16-step × 6-track** grid sequencer (kick, snare, hihat, clap, tom, rim)
-- **Web Audio API** synthesized drums — no sample files needed
-- **URL state encoding** — grid pattern, BPM, and swing packed into the URL hash
-- **Swing control** for that human groove feel
-- **One-click sharing** — copies the beat URL to clipboard
-- **Keyboard shortcuts** — Space to play/stop
-- **Responsive** — works on mobile
-- **Zero dependencies** — single HTML file, ~11KB
-
-## How It Works
-
-Each track's 16 steps are packed into a 16-bit integer. The URL hash format is:
-
-```
-#BPM.SWING.KICK.SNARE.HIHAT.CLAP.TOM.RIM
-```
-
-For example, `#120.0.33.8200.21845.512.0.0` encodes a beat at 120 BPM with kick on beats 1 and 5, snare pattern, etc.
-
-## Try It
-
-Open `index.html` in any browser. That's it.
+- **16-step sequencer** with 8 tracks (kick, snare, hihat, clap, tom, rim, perc, cowbell)
+- **3 drum kits** — 808, Acoustic, Electronic (all synthesized via Web Audio API)
+- **URL state** — entire beat (grid, BPM, swing, kit, volumes) encoded in the hash
+- **Visual waveform** — real-time frequency visualization reacting to the beat
+- **Tap tempo** — tap to set BPM by feel
+- **Preset patterns** — 4-on-the-floor, Boom Bap, Trap, Reggaeton, D&B, Bossa Nova
+- **Per-track volume** control
+- **Export to WAV** — render your pattern as audio using OfflineAudioContext
+- **Dark neon aesthetic** with smooth animations
+- **Mobile responsive**
 
 ## Tech
 
-- Vanilla HTML/CSS/JS — no build step, no framework
-- Web Audio API oscillators + noise buffers for drum synthesis
-- CSS Grid for the sequencer layout
-- `history.replaceState` for live URL updates without page reloads
+- Next.js 16 (App Router)
+- TypeScript
+- Tailwind CSS v4
+- Web Audio API (all sounds synthesized, zero samples)
+
+## Development
+
+```bash
+pnpm install
+pnpm dev
+```
 
 ## License
 
