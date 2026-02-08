@@ -94,16 +94,7 @@ export function Controls({
   zoom, onZoomIn, onZoomOut,
 }: ControlsProps) {
   const [presetsOpen, setPresetsOpen] = useState(false);
-  const [isMobile, setIsMobile] = useState(false);
   const presetsRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    const mq = window.matchMedia("(max-width: 767px)");
-    setIsMobile(mq.matches);
-    const handler = (e: MediaQueryListEvent) => setIsMobile(e.matches);
-    mq.addEventListener("change", handler);
-    return () => mq.removeEventListener("change", handler);
-  }, []);
 
   useEffect(() => {
     const handler = (e: MouseEvent) => {
@@ -122,9 +113,8 @@ export function Controls({
     setKit(kits[(idx + 1) % kits.length]);
   };
 
-  if (isMobile) {
-    return (
-      <div style={{
+  const mobileToolbar = (
+      <div className="md:hidden" style={{
         width: "100%",
         background: "var(--surface)",
         borderBottom: "1px solid rgba(255,255,255,0.06)",
@@ -253,14 +243,12 @@ export function Controls({
         </div>
       </div>
     );
-  }
 
-  return (
-    <div style={{
+  const desktopToolbar = (
+    <div className="hidden md:flex" style={{
       width: "100%",
       background: "var(--surface)",
       borderBottom: "1px solid rgba(255,255,255,0.06)",
-      display: "flex",
       flexWrap: "wrap",
       alignItems: "center",
       position: "relative",
@@ -411,5 +399,12 @@ export function Controls({
         <Download size={11} /> WAV
       </button>
     </div>
+  );
+
+  return (
+    <>
+      {mobileToolbar}
+      {desktopToolbar}
+    </>
   );
 }
