@@ -163,20 +163,6 @@ export function Controls({
             {kit}
           </button>
 
-          <div style={{ width: 1, height: 20, background: "rgba(255,255,255,0.08)", margin: "0 2px" }} />
-
-          {/* Bars */}
-          <button onClick={onRemoveBar} style={{ ...mobileActionBtn, opacity: stepCount <= 4 ? 0.3 : 1 }} disabled={stepCount <= 4}><Minus size={10} /></button>
-          <span style={{ fontSize: 8, color: "var(--perc)", whiteSpace: "nowrap" }}>{bars}B</span>
-          <button onClick={onAddBar} style={{ ...mobileActionBtn, opacity: stepCount >= 256 ? 0.3 : 1 }} disabled={stepCount >= 256}><Plus size={10} /></button>
-
-          <div style={{ width: 1, height: 20, background: "rgba(255,255,255,0.08)", margin: "0 2px" }} />
-
-          {/* Zoom */}
-          <button onClick={onZoomOut} style={mobileActionBtn}><ZoomOut size={10} /></button>
-          <span style={{ fontSize: 8, color: "#666", whiteSpace: "nowrap" }}>{Math.round(zoom * 100)}%</span>
-          <button onClick={onZoomIn} style={mobileActionBtn}><ZoomIn size={10} /></button>
-
           <div style={{ flex: 1 }} />
 
           <button
@@ -202,8 +188,22 @@ export function Controls({
           </button>
         </div>
 
-        {/* Row 2: Actions */}
+        {/* Row 2: Bars, Zoom, Actions */}
         <div style={{ display: "flex", alignItems: "center", flexWrap: "nowrap" }}>
+          {/* Bars */}
+          <button onClick={onRemoveBar} style={{ ...mobileActionBtn, opacity: stepCount <= 4 ? 0.3 : 1 }} disabled={stepCount <= 4}><Minus size={10} /></button>
+          <span style={{ fontSize: 8, color: "var(--perc)", whiteSpace: "nowrap" }}>{bars}B</span>
+          <button onClick={onAddBar} style={{ ...mobileActionBtn, opacity: stepCount >= 256 ? 0.3 : 1 }} disabled={stepCount >= 256}><Plus size={10} /></button>
+
+          <div style={{ width: 1, height: 20, background: "rgba(255,255,255,0.08)", margin: "0 2px" }} />
+
+          {/* Zoom */}
+          <button onClick={onZoomOut} style={mobileActionBtn}><ZoomOut size={10} /></button>
+          <span style={{ fontSize: 8, color: "#666", whiteSpace: "nowrap" }}>{Math.round(zoom * 100)}%</span>
+          <button onClick={onZoomIn} style={mobileActionBtn}><ZoomIn size={10} /></button>
+
+          <div style={{ width: 1, height: 20, background: "rgba(255,255,255,0.08)", margin: "0 2px" }} />
+
           <button onClick={randomize} style={mobileActionBtn} title="Randomize"><Dice5 size={13} /></button>
           <button onClick={clearAll} style={mobileActionBtn} title="Clear"><Trash2 size={13} /></button>
           <button onClick={shareURL} style={{ ...mobileActionBtn, color: "var(--hihat)" }} title="Share"><Link size={13} /></button>
