@@ -109,31 +109,32 @@ export function Controls({
       </div>
 
       {/* Kit */}
-      <div className="h-10 flex items-center border-r border-[rgba(255,255,255,0.06)]">
+      <div className="h-10 flex items-center gap-0 border-r border-[rgba(255,255,255,0.06)]">
         <span className="text-[9px] text-[var(--dim)] tracking-[2px] px-3">KIT</span>
-        {kits.map((k) => (
-          <button
-            key={k}
-            onClick={() => setKit(k)}
-            className="h-10 px-3 text-[9px] tracking-[1px] uppercase cursor-pointer border-0 border-l border-l-[rgba(255,255,255,0.04)] transition-all duration-100"
-            style={kit === k ? {
-              background: "var(--tom)",
-              color: "#fff",
-            } : {
-              background: "transparent",
-              color: "var(--dim)",
-            }}
-          >
-            {k}
-          </button>
-        ))}
+        <div className="flex h-10">
+          {kits.map((k, i) => (
+            <button
+              key={k}
+              onClick={() => setKit(k)}
+              className="h-10 px-3 text-[9px] tracking-[1px] uppercase cursor-pointer transition-all duration-100"
+              style={{
+                background: kit === k ? "var(--tom)" : "transparent",
+                color: kit === k ? "#fff" : "var(--dim)",
+                border: "none",
+                borderLeft: "1px solid rgba(255,255,255,0.08)",
+              }}
+            >
+              {k}
+            </button>
+          ))}
+        </div>
       </div>
 
       {/* Bars */}
       <div className="h-10 flex items-center gap-1 px-2 border-r border-[rgba(255,255,255,0.06)]">
         <button onClick={onRemoveBar} className="w-5 h-6 text-[var(--dim)] hover:text-white bg-transparent border-0 cursor-pointer flex items-center justify-center" disabled={stepCount <= 4}><Minus size={10} /></button>
         <span className="text-[9px] w-10 text-center" style={{ color: "var(--perc)" }}>{bars} BAR{bars !== 1 ? "S" : ""}</span>
-        <button onClick={onAddBar} className="w-5 h-6 text-[var(--dim)] hover:text-white bg-transparent border-0 cursor-pointer flex items-center justify-center" disabled={stepCount >= 64}><Plus size={10} /></button>
+        <button onClick={onAddBar} className="w-5 h-6 text-[var(--dim)] hover:text-white bg-transparent border-0 cursor-pointer flex items-center justify-center" disabled={stepCount >= 256}><Plus size={10} /></button>
       </div>
 
       {/* Zoom */}

@@ -157,7 +157,7 @@ export function Sequencer() {
   const addBar = useCallback(() => {
     setGrid((prev) => {
       const currentLen = prev[0].length;
-      if (currentLen >= 64) return prev;
+      if (currentLen >= 256) return prev;
       return prev.map((row) => [...row, 0, 0, 0, 0]);
     });
   }, []);
@@ -177,6 +177,19 @@ export function Sequencer() {
   const handleZoomOut = useCallback(() => {
     setZoom((z) => Math.max(0.25, z - 0.25));
   }, []);
+
+  // Trackpad pinch-to-zoom handler
+  useEffect(() => {
+    const handler = (e: WheelEvent) => {
+      if (e.ctrlKey) {
+        e.preventDefault();
+        if (e.deltaY < 0) handleZoomIn();
+        else handleZoomOut();
+      }
+    };
+    document.addEventListener('wheel', handler, { passive: false });
+    return () => document.removeEventListener('wheel', handler);
+  }, [handleZoomIn, handleZoomOut]);
 
   // Calculate cell min-width based on zoom. At zoom=1 with 16 steps, no min-width (flex fills).
   // For zoom != 1, set a pixel min-width.
@@ -249,8 +262,7 @@ export function Sequencer() {
 
         {/* Step indicators top */}
         <div className="flex h-4 shrink-0" style={{ position: "relative", zIndex: 1 }}>
-          <div className="w-[60px] md:w-[80px] shrink-0" />
-          <div className="w-[32px] md:w-[40px] shrink-0" />
+          <div className="w-[50px] md:w-[70px] shrink-0 sticky left-0 z-10" style={{ background: "var(--surface)" }} />
           <div className="flex-1 flex gap-px px-px">
             {Array.from({ length: stepCount }, (_, i) => (
               <div

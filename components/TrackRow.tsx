@@ -2,6 +2,11 @@
 
 import { memo, useCallback } from "react";
 
+const ABBREVS: Record<string, string> = {
+  kick: "KCK", snare: "SNR", hihat: "HH", clap: "CLP",
+  tom: "TOM", rim: "RIM", perc: "PRC", cowbell: "COW",
+};
+
 interface TrackRowProps {
   track: { name: string; key: string; color: string };
   row: number[];
@@ -16,32 +21,39 @@ interface TrackRowProps {
 export const TrackRow = memo(function TrackRow({
   track, row, rowIndex, currentStep, volume, onToggle, onVolumeChange, cellMinWidth,
 }: TrackRowProps) {
-  const handleVolume = useCallback(
-    (e: React.ChangeEvent<HTMLInputElement>) => {
-      onVolumeChange(rowIndex, Number(e.target.value) / 100);
-    },
-    [rowIndex, onVolumeChange]
-  );
+  const cycleVolume = useCallback(() => {
+    const levels = [0, 0.25, 0.5, 0.75, 1.0];
+    const current = levels.reduce((prev, curr) =>
+      Math.abs(curr - volume) < Math.abs(prev - volume) ? curr : prev
+    );
+    const idx = levels.indexOf(current);
+    onVolumeChange(rowIndex, levels[(idx + 1) % levels.length]);
+  }, [rowIndex, volume, onVolumeChange]);
+
+  const abbrev = ABBREVS[track.key] || track.name.slice(0, 3).toUpperCase();
 
   return (
     <div className="flex items-stretch border-b border-[rgba(255,255,255,0.03)]" style={{ height: "calc((100vh - 56px) / 8)", minHeight: "40px" }}>
-      {/* Track label */}
+      {/* Sticky left label */}
       <div
-        className="w-[60px] md:w-[80px] shrink-0 flex items-center justify-end pr-2 text-[9px] md:text-[10px] tracking-[1.5px] font-semibold uppercase"
-        style={{ fontFamily: "var(--font-mono)", color: track.color, textShadow: `0 0 10px ${track.color}30` }}
+        className="w-[50px] md:w-[70px] shrink-0 flex flex-col items-center justify-center gap-0.5 cursor-pointer sticky left-0 z-10"
+        style={{ fontFamily: "var(--font-mono)", background: "var(--surface)" }}
+        onClick={cycleVolume}
+        title={`${track.name} — Vol: ${Math.round(volume * 100)}% (click to cycle)`}
       >
-        {track.name}
-      </div>
-
-      {/* Volume */}
-      <div className="w-[32px] md:w-[40px] shrink-0 flex items-center px-1">
-        <input
-          type="range" min={0} max={100} step={5}
-          value={Math.round(volume * 100)}
-          onChange={handleVolume}
-          className="w-full h-0.5 accent-[var(--dim)] opacity-40 hover:opacity-80 transition-opacity"
-          style={{ accentColor: track.color }}
-        />
+        <span
+          className="text-[8px] md:text-[9px] tracking-[1px] font-bold uppercase leading-none"
+          style={{ color: track.color, textShadow: `0 0 8px ${track.color}30` }}
+        >
+          {abbrev}
+        </span>
+        {/* Tiny volume bar */}
+        <div className="w-[24px] md:w-[32px] h-[3px] rounded-full overflow-hidden" style={{ background: "rgba(255,255,255,0.08)" }}>
+          <div
+            className="h-full rounded-full transition-all duration-100"
+            style={{ width: `${volume * 100}%`, background: track.color, opacity: 0.7 }}
+          />
+        </div>
       </div>
 
       {/* Cells */}
@@ -70,7 +82,6 @@ export const TrackRow = memo(function TrackRow({
                 borderLeft: isBeatStart && c > 0 ? "1px solid rgba(255,255,255,0.06)" : "none",
               }}
             >
-              {/* Playhead column highlight */}
               {isPlaying && (
                 <div className="absolute inset-0 pointer-events-none" style={{
                   background: isOn
