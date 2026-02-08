@@ -1,6 +1,6 @@
 "use client";
 
-import { memo, useCallback } from "react";
+import { memo, useCallback, useState } from "react";
 
 const ABBREVS: Record<string, string> = {
   kick: "KCK", snare: "SNR", hihat: "HH", clap: "CLP",
@@ -37,7 +37,7 @@ export const TrackRow = memo(function TrackRow({
       {/* Sticky left label */}
       <div
         className="w-[50px] md:w-[70px] shrink-0 flex flex-col items-center justify-center gap-0.5 cursor-pointer z-10"
-        style={{ fontFamily: "var(--font-mono)", background: "#0c0c16", position: "sticky", left: 0 }}
+        style={{ fontFamily: "var(--font-mono)", background: "#0e0e1a", position: "sticky", left: 0, borderRight: "1px solid rgba(255,255,255,0.04)" }}
         onClick={cycleVolume}
         title={`${track.name} — Vol: ${Math.round(volume * 100)}% (click to cycle)`}
       >
@@ -67,7 +67,7 @@ export const TrackRow = memo(function TrackRow({
             <button
               key={c}
               onClick={() => onToggle(rowIndex, c)}
-              className="flex-1 relative border-0 cursor-pointer transition-all duration-[50ms]"
+              className="flex-1 relative border-0 cursor-pointer transition-all duration-[50ms] group/cell"
               style={{
                 minWidth: cellMinWidth ? `${cellMinWidth}px` : undefined,
                 background: isOn
@@ -82,6 +82,17 @@ export const TrackRow = memo(function TrackRow({
                 borderLeft: isBeatStart && c > 0 ? "1px solid rgba(255,255,255,0.06)" : "none",
               }}
             >
+              {/* Hover overlay */}
+              <div
+                className="absolute inset-0 pointer-events-none opacity-0 group-hover/cell:opacity-100 transition-opacity duration-75"
+                style={{
+                  background: isOn
+                    ? "rgba(255,255,255,0.15)"
+                    : `${track.color}18`,
+                  outline: `1px solid ${track.color}40`,
+                  outlineOffset: "-1px",
+                }}
+              />
               {isPlaying && (
                 <div className="absolute inset-0 pointer-events-none" style={{
                   background: isOn

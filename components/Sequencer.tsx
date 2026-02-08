@@ -262,7 +262,7 @@ export function Sequencer() {
 
         {/* Step indicators top */}
         <div className="flex h-4 shrink-0" style={{ position: "relative", zIndex: 1 }}>
-          <div className="w-[50px] md:w-[70px] shrink-0 z-10" style={{ background: "#0c0c16", position: "sticky", left: 0 }} />
+          <div className="w-[50px] md:w-[70px] shrink-0 z-10" style={{ background: "#0e0e1a", position: "sticky", left: 0, borderRight: "1px solid rgba(255,255,255,0.04)" }} />
           <div className="flex-1 flex gap-px px-px">
             {Array.from({ length: stepCount }, (_, i) => {
               // Determine label density: show fewer numbers when cells are narrow
