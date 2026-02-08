@@ -109,13 +109,13 @@ export function Controls({
       </div>
 
       {/* Kit */}
-      <div className="h-10 flex items-center gap-0 border-r border-[rgba(255,255,255,0.06)]">
-        <span className="text-[9px] text-[var(--dim)] tracking-[2px] px-2">KIT</span>
+      <div className="h-10 flex items-center border-r border-[rgba(255,255,255,0.06)]">
+        <span className="text-[9px] text-[var(--dim)] tracking-[2px] px-3">KIT</span>
         {kits.map((k) => (
           <button
             key={k}
             onClick={() => setKit(k)}
-            className="h-10 px-2.5 text-[9px] tracking-[1px] uppercase cursor-pointer border-0 transition-all duration-100"
+            className="h-10 px-3 text-[9px] tracking-[1px] uppercase cursor-pointer border-0 border-l border-l-[rgba(255,255,255,0.04)] transition-all duration-100"
             style={kit === k ? {
               background: "var(--tom)",
               color: "#fff",
