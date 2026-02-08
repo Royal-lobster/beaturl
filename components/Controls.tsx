@@ -114,7 +114,8 @@ export function Controls({
   };
 
   const mobileToolbar = (
-      <div className="md:hidden" style={{
+      <div className="md:hidden">
+      <div style={{
         width: "100%",
         background: "var(--surface)",
         borderBottom: "1px solid rgba(255,255,255,0.06)",
@@ -242,13 +243,16 @@ export function Controls({
           <button onClick={onZoomIn} style={mobileActionBtn} title="Zoom In"><ZoomIn size={11} /></button>
         </div>
       </div>
+      </div>
     );
 
   const desktopToolbar = (
-    <div className="hidden md:flex" style={{
+    <div className="hidden md:block">
+    <div style={{
       width: "100%",
       background: "var(--surface)",
       borderBottom: "1px solid rgba(255,255,255,0.06)",
+      display: "flex",
       flexWrap: "wrap",
       alignItems: "center",
       position: "relative",
@@ -398,6 +402,7 @@ export function Controls({
       <button onClick={handleExport} style={{ ...actionBtn, color: "var(--clap)" }}>
         <Download size={11} /> WAV
       </button>
+    </div>
     </div>
   );
 
