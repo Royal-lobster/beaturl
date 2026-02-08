@@ -7,6 +7,8 @@ import { PRESETS } from "@/lib/presets";
 import { Visualizer } from "./Visualizer";
 import { TrackRow } from "./TrackRow";
 import { Controls } from "./Controls";
+import { Badge } from "@/components/ui/badge";
+import { toastManager } from "@/components/ui/toast";
 
 const DEFAULT_VOLUMES = TRACKS.map(() => 0.8);
 
@@ -20,8 +22,6 @@ export function Sequencer() {
   const [volumes, setVolumes] = useState<number[]>([...DEFAULT_VOLUMES]);
   const [playing, setPlaying] = useState(false);
   const [currentStep, setCurrentStep] = useState(-1);
-  const [toast, setToast] = useState("");
-  const [presetsOpen, setPresetsOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
 
   const playingRef = useRef(false);
@@ -33,17 +33,14 @@ export function Sequencer() {
   const volumesRef = useRef(volumes);
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  // Trigger mount animations
   useEffect(() => { setMounted(true); }, []);
 
-  // Sync refs
   useEffect(() => { bpmRef.current = bpm; }, [bpm]);
   useEffect(() => { swingRef.current = swing; }, [swing]);
   useEffect(() => { kitRef.current = kit; }, [kit]);
   useEffect(() => { gridRef.current = grid; }, [grid]);
   useEffect(() => { volumesRef.current = volumes; }, [volumes]);
 
-  // Load state from URL on mount
   useEffect(() => {
     const hash = window.location.hash.slice(1);
     if (hash) {
@@ -58,7 +55,6 @@ export function Sequencer() {
     }
   }, []);
 
-  // Encode state to URL on change
   const updateURL = useCallback(() => {
     const data = encodeState({
       grid: gridRef.current,
@@ -72,7 +68,6 @@ export function Sequencer() {
 
   useEffect(() => { updateURL(); }, [grid, bpm, swing, kit, volumes, updateURL]);
 
-  // Playback
   const tick = useCallback(() => {
     if (!playingRef.current) return;
     stepRef.current = (stepRef.current + 1) % STEPS;
@@ -99,7 +94,7 @@ export function Sequencer() {
       stepRef.current = -1;
       if (timerRef.current) clearTimeout(timerRef.current);
     } else {
-      getAudioContext(); // init
+      getAudioContext();
       playingRef.current = true;
       setPlaying(true);
       stepRef.current = -1;
@@ -107,7 +102,6 @@ export function Sequencer() {
     }
   }, [tick]);
 
-  // Keyboard: space to toggle
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
       if (e.code === "Space" && e.target === document.body) {
@@ -154,22 +148,21 @@ export function Sequencer() {
     setBpm(p.bpm);
     setSwing(p.swing);
     setKit(p.kit);
-    setPresetsOpen(false);
+    toastManager.add({ title: `Loaded: ${p.name}`, type: "success" });
   }, []);
 
   const shareURL = useCallback(async () => {
     updateURL();
     try {
       await navigator.clipboard.writeText(window.location.href);
-      setToast("Link copied!");
+      toastManager.add({ title: "Link copied to clipboard!", type: "success" });
     } catch {
-      setToast("Check URL bar!");
+      toastManager.add({ title: "Check URL bar for your beat link", type: "info" });
     }
-    setTimeout(() => setToast(""), 2000);
   }, [updateURL]);
 
   const handleExport = useCallback(async () => {
-    setToast("Rendering...");
+    toastManager.add({ title: "Rendering WAV...", type: "loading" });
     try {
       const blob = await exportToWav(grid, bpm, swing, kit, volumes);
       const url = URL.createObjectURL(blob);
@@ -178,14 +171,12 @@ export function Sequencer() {
       a.download = `beaturl-${bpm}bpm.wav`;
       a.click();
       URL.revokeObjectURL(url);
-      setToast("Exported!");
+      toastManager.add({ title: "WAV exported!", type: "success" });
     } catch {
-      setToast("Export failed");
+      toastManager.add({ title: "Export failed", type: "error" });
     }
-    setTimeout(() => setToast(""), 2000);
   }, [grid, bpm, swing, kit, volumes]);
 
-  // Tap tempo
   const tapTimesRef = useRef<number[]>([]);
   const tapTempo = useCallback(() => {
     const now = Date.now();
@@ -209,13 +200,13 @@ export function Sequencer() {
       {/* Header */}
       <div className={mounted ? "animate-drop-in" : "opacity-0"}>
         <h1
-          className="text-5xl md:text-7xl font-normal mb-1 tracking-wide"
+          className="text-5xl md:text-7xl font-bold mb-1 tracking-tight"
           style={{
             fontFamily: "var(--font-display)",
             background: "linear-gradient(135deg, var(--kick), var(--clap), var(--hihat))",
             WebkitBackgroundClip: "text",
             WebkitTextFillColor: "transparent",
-            filter: "drop-shadow(0 0 30px rgba(255, 45, 85, 0.2))",
+            filter: "drop-shadow(0 0 40px rgba(255, 45, 85, 0.25))",
           }}
         >
           BeatURL
@@ -249,8 +240,6 @@ export function Sequencer() {
           shareURL={shareURL}
           handleExport={handleExport}
           tapTempo={tapTempo}
-          presetsOpen={presetsOpen}
-          setPresetsOpen={setPresetsOpen}
           loadPreset={loadPreset}
         />
       </div>
@@ -307,33 +296,18 @@ export function Sequencer() {
 
       {/* Footer badge */}
       <div
-        className={`mt-6 px-4 py-2 rounded-full border ${mounted ? "animate-fade-up" : "opacity-0"}`}
-        style={{
-          animationDelay: "1s",
-          fontFamily: "var(--font-mono)",
-          fontSize: "8px",
-          letterSpacing: "1.5px",
-          color: "var(--dim)",
-          borderColor: "var(--border)",
-          background: "rgba(14, 14, 24, 0.5)",
-        }}
+        className={`mt-6 flex gap-2 items-center ${mounted ? "animate-fade-up" : "opacity-0"}`}
+        style={{ animationDelay: "1s" }}
       >
-        MADE WITH WEB AUDIO API · NO DATABASE · BEAT ENCODED IN URL
-      </div>
-
-      {/* Toast */}
-      <div
-        className={`fixed bottom-6 left-1/2 -translate-x-1/2 px-6 py-2.5 rounded-full text-xs font-semibold transition-all duration-300 z-50 ${
-          toast ? "opacity-100 translate-y-0" : "opacity-0 translate-y-2"
-        }`}
-        style={{
-          background: "linear-gradient(135deg, var(--hihat), var(--clap))",
-          color: "#000",
-          fontFamily: "var(--font-mono)",
-          boxShadow: "0 4px 20px rgba(0, 229, 255, 0.3)",
-        }}
-      >
-        {toast}
+        <Badge variant="outline" className="text-[8px] tracking-[1.5px] font-mono border-[rgba(255,255,255,0.08)] text-[var(--dim)] bg-transparent">
+          WEB AUDIO API
+        </Badge>
+        <Badge variant="outline" className="text-[8px] tracking-[1.5px] font-mono border-[rgba(255,255,255,0.08)] text-[var(--dim)] bg-transparent">
+          NO DATABASE
+        </Badge>
+        <Badge variant="outline" className="text-[8px] tracking-[1.5px] font-mono border-[rgba(255,255,255,0.08)] text-[var(--dim)] bg-transparent">
+          URL ENCODED
+        </Badge>
       </div>
     </div>
   );
