@@ -150,20 +150,18 @@ Captures both quarter-note and half-note periodicity
 
 Grid entropy in bytes (lower = better), grid data only:
 
-```
-Pattern               order-1  order-2  order-3  period-4  p4+8+prev  raw
----------------------------------------------------------------------------
-Real beat 16-step          12       12       13        13         13    16
-4-on-floor 16               9        9       10        10         10    16
-4-on-floor 64              22       22       20        19         15    64
-4-on-floor 256             76       71       56        57         30   256
-Breakbeat 16                9       10       11        11         10    16
-Trap 32                    12       12       12        12         13    32
-Polyrhythm 128             81       70       60        73         56   128
-Empty 16                    6        6        7         8          8    16
-Empty 256                   9       10       11        12         12   256
-Pseudo-random 64           60       54       33        40         44    64
-```
+| Pattern | order-1 | order-2 | order-3 | period-4 | p4+8+prev | raw |
+|---|---|---|---|---|---|---|
+| Real beat 16-step | 12 | 12 | 13 | 13 | 13 | 16 |
+| 4-on-floor 16 | 9 | 9 | 10 | 10 | 10 | 16 |
+| 4-on-floor 64 | 22 | 22 | 20 | 19 | 15 | 64 |
+| 4-on-floor 256 | 76 | 71 | 56 | 57 | 30 | 256 |
+| Breakbeat 16 | 9 | 10 | 11 | 11 | 10 | 16 |
+| Trap 32 | 12 | 12 | 12 | 12 | 13 | 32 |
+| Polyrhythm 128 | 81 | 70 | 60 | 73 | 56 | 128 |
+| Empty 16 | 6 | 6 | 7 | 8 | 8 | 16 |
+| Empty 256 | 9 | 10 | 11 | 12 | 12 | 256 |
+| Pseudo-random 64 | 60 | 54 | 33 | 40 | 44 | 64 |
 
 ### Key Findings
 
