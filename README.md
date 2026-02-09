@@ -39,19 +39,30 @@ All drum sounds are synthesized in real-time using the Web Audio API — oscilla
 
 ## 🔗 URL Encoding
 
-The URL hash contains everything:
+The entire beat state is compressed into the URL hash using **adaptive arithmetic coding** — an information-theoretic compression technique that gets within 1–2 bytes of the Shannon entropy limit for beat pattern data.
+
+### Format
+
+The hash is a base64url-encoded binary payload:
 
 ```
+Byte 0:    bpm - 40              (0–200 → BPM 40–240)
+Byte 1:    swing                 (0–80)
+Byte 2:    kitIdx | volFlag<<7   (bit 7 = all volumes are default 80)
+Byte 3:    stepCount / 4         (1–64 → 4–256 steps)
+Bytes 4–11: volumes              (only present if volFlag = 0)
+Remaining:  arithmetic-coded grid bitstream
+```
 
-#120.0.2.16.ff03.0c00.ffff.0000.0000.0000.0000.0000.80.80.80.80.80.80.80.80
-│   │ │ │   │     └─ track grid data (hex-encoded bitfields)
-│   │ │ │   └─ kick pattern
-│   │ │ └─ step count
-│   │ └─ kit index
-│   └─ swing
-└─ BPM
+### How it works
 
-````
+The grid (8 tracks × N steps of on/off cells) is compressed with an **order-2 adaptive arithmetic coder**:
+
+1. Each track is encoded bit-by-bit, using the previous 2 bits as context
+2. The coder maintains per-context probability tables that adapt as it encodes (starting from a Laplace [1,1] prior)
+3. A 48-bit BigInt range coder converts these probabilities into a near-optimal bitstream
+
+A typical 16-step beat compresses to just **22 characters**.
 
 Copy the URL → share it → anyone hears your beat.
 
