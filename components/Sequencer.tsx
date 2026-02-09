@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef, useCallback } from "react";
-import { TRACKS, STEPS, playSound, getAudioContext, getAnalyser, exportToWav, type KitName } from "@/lib/audio";
+import { TRACKS, STEPS, playSound, getAudioContext, ensureAudioUnlocked, getAnalyser, exportToWav, type KitName } from "@/lib/audio";
 import { encodeState, decodeState } from "@/lib/url-state";
 import { PRESETS } from "@/lib/presets";
 import { Visualizer } from "./Visualizer";
@@ -130,7 +130,7 @@ export function Sequencer() {
     timerRef.current = setTimeout(tick, baseMs + swingOffset);
   }, []);
 
-  const togglePlay = useCallback(() => {
+  const togglePlay = useCallback(async () => {
     if (playingRef.current) {
       playingRef.current = false;
       setPlaying(false);
@@ -138,7 +138,7 @@ export function Sequencer() {
       stepRef.current = -1;
       if (timerRef.current) clearTimeout(timerRef.current);
     } else {
-      getAudioContext();
+      await ensureAudioUnlocked();
       playingRef.current = true;
       setPlaying(true);
       stepRef.current = -1;

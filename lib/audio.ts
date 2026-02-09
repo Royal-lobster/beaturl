@@ -16,28 +16,30 @@ export function getAudioContext(): AudioContext {
     masterGain.connect(analyser);
     analyser.connect(audioCtx.destination);
   }
-  if (audioCtx.state === "suspended") audioCtx.resume();
+  // Always try to resume — on iOS this needs to happen in a user gesture call stack
+  if (audioCtx.state === "suspended") {
+    audioCtx.resume();
+  }
   return audioCtx;
 }
 
-// Unlock AudioContext on first user interaction (required for iOS WebKit)
-if (typeof window !== "undefined") {
-  const unlock = () => {
-    const ctx = getAudioContext();
-    if (ctx.state === "suspended") ctx.resume();
-    // Play a silent buffer to fully unlock on iOS
-    const buf = ctx.createBuffer(1, 1, ctx.sampleRate);
-    const src = ctx.createBufferSource();
-    src.buffer = buf;
-    src.connect(ctx.destination);
-    src.start(0);
-    window.removeEventListener("touchstart", unlock);
-    window.removeEventListener("touchend", unlock);
-    window.removeEventListener("click", unlock);
-  };
-  window.addEventListener("touchstart", unlock, { once: false });
-  window.addEventListener("touchend", unlock, { once: false });
-  window.addEventListener("click", unlock, { once: false });
+/**
+ * Ensure AudioContext is running. Must be called from a user gesture handler.
+ * On iOS WebKit the context starts suspended and resume() is async —
+ * we await it and play a silent buffer to fully unlock the audio output.
+ */
+export async function ensureAudioUnlocked(): Promise<AudioContext> {
+  const ctx = getAudioContext();
+  if (ctx.state === "suspended") {
+    await ctx.resume();
+  }
+  // Silent buffer trick — needed on some iOS versions to truly unlock output
+  const buf = ctx.createBuffer(1, 1, ctx.sampleRate);
+  const src = ctx.createBufferSource();
+  src.buffer = buf;
+  src.connect(ctx.destination);
+  src.start(0);
+  return ctx;
 }
 
 export function getAnalyser(): AnalyserNode | null {
