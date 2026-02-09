@@ -20,6 +20,26 @@ export function getAudioContext(): AudioContext {
   return audioCtx;
 }
 
+// Unlock AudioContext on first user interaction (required for iOS WebKit)
+if (typeof window !== "undefined") {
+  const unlock = () => {
+    const ctx = getAudioContext();
+    if (ctx.state === "suspended") ctx.resume();
+    // Play a silent buffer to fully unlock on iOS
+    const buf = ctx.createBuffer(1, 1, ctx.sampleRate);
+    const src = ctx.createBufferSource();
+    src.buffer = buf;
+    src.connect(ctx.destination);
+    src.start(0);
+    window.removeEventListener("touchstart", unlock);
+    window.removeEventListener("touchend", unlock);
+    window.removeEventListener("click", unlock);
+  };
+  window.addEventListener("touchstart", unlock, { once: false });
+  window.addEventListener("touchend", unlock, { once: false });
+  window.addEventListener("click", unlock, { once: false });
+}
+
 export function getAnalyser(): AnalyserNode | null {
   return analyser;
 }
