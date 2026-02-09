@@ -333,12 +333,13 @@ export function Controls({
       <button
         onClick={cycleKit}
         title={`Kit: ${kit}`}
-        className="xl:hidden"
+        className="xl:!hidden flex items-center"
         style={{
-          ...section,
+          height: 40,
           padding: "0 8px",
           border: "none",
           borderLeft: "1px solid rgba(255,255,255,0.08)",
+          borderRight: "1px solid rgba(255,255,255,0.08)",
           cursor: "pointer",
           fontSize: 9,
           fontWeight: 600,
