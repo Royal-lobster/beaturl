@@ -1,154 +1,120 @@
-# Compressing Beat Patterns into URLs
+# How We Squeezed Drum Beats into URLs
 
-How BeatURL encodes an 8x256 binary grid into a URL hash shorter than most tweet URLs, and the information theory behind why it works.
+Ever tried sharing a URL that's longer than the content it links to? Yeah, we had that problem. BeatURL lets you make drum patterns and share them — but the pattern lives *in the URL itself*. No database, no server, no accounts. Just a link.
 
-## Prerequisites: Information Theory Basics
+The catch? An 8-track, 256-step grid is 2,048 binary cells. That's 256 bytes before you even add BPM or volume info. Base64-encode that and you've got a URL longer than this paragraph.
 
-### Bits and Information
+So we went down the information theory rabbit hole. Here's what we learned.
 
-A **bit** is the smallest unit of information — a yes/no answer. If you flip a fair coin, you need 1 bit to record the result. If you roll a 6-sided die, you need ~2.58 bits (log2(6)). The key insight: **the less predictable something is, the more bits you need to describe it**.
+## A Quick Detour Through 1948
 
-### Shannon Entropy
+Before we compress anything, we need to know *how much* we can compress. That's where Claude Shannon comes in.
 
-In 1948, Claude Shannon defined **entropy** as the theoretical minimum number of bits needed to encode a message. For a source that produces symbols with probabilities p1, p2, ..., pn:
+Shannon figured out something beautiful: **the less predictable your data is, the more space it takes to describe it**. He called this *entropy* — the theoretical minimum number of bits needed to encode a message.
 
-```
-H = -sum(pi * log2(pi))
-```
-
-For a binary source (just 0s and 1s) with probability p of seeing a 1:
+For binary data (just 0s and 1s), the formula is:
 
 ```
-H = -(p * log2(p) + (1-p) * log2(1-p))
+H = -(p × log₂(p) + (1-p) × log₂(1-p))
 ```
 
-Some examples:
-- p = 0.5 (fair coin): H = 1.0 bit per symbol — maximum uncertainty
-- p = 0.1 (rare 1s): H = 0.47 bits per symbol — mostly 0s, very predictable
-- p = 0.0 (all zeros): H = 0.0 bits per symbol — no information at all
+Where `p` is the probability of seeing a 1. Some intuition:
 
-This means if your data is 90% zeros, you theoretically need less than half a bit per cell. Fixed-length encoding (1 bit per cell) wastes more than half the space.
+- **p = 0.5** (coin flip): 1.0 bit per cell. Maximum chaos. Can't compress at all.
+- **p = 0.1** (mostly empty): 0.47 bits per cell. More than half the space is wasted by fixed-width encoding!
+- **p = 0.0** (all zeros): 0.0 bits. Nothing to say. Literally.
 
-### Conditional Entropy and Context
+Here's the kicker: most drum patterns are *sparse*. A typical beat might be 15-20% filled. Shannon says we should be able to represent each cell in *way less* than one bit. The question is how.
 
-Entropy drops further when symbols are **correlated**. If knowing the previous bit helps predict the next one, the **conditional entropy** H(X|context) < H(X).
+There's one more trick. Entropy drops even further when bits are **correlated**. In a beat pattern, if this step is a kick, the next step almost certainly *isn't*. An encoder that notices these patterns can squeeze out even more.
 
-In a beat pattern, if step 4 is a kick, step 5 is very likely NOT a kick. The context "previous bit was 1" makes "next bit is 0" more probable. An encoder that tracks these conditional probabilities can exploit this correlation.
+Shannon proved this is a hard floor — no lossless compressor can ever beat the entropy rate. So we have a target to aim for.
 
-### The Source Coding Theorem
-
-Shannon proved that **no lossless encoding can do better than the entropy rate**. This gives us a hard floor — we can measure how close any compressor gets to optimal.
-
-## The Problem
-
-BeatURL stores drum patterns in the URL hash. The grid is 8 tracks x N steps (4 to 256), where each cell is on or off. With metadata (BPM, swing, kit, volumes), we need to pack all of this into a URL that's short enough to share.
-
-### What We're Encoding
+## What We're Packing
 
 ```
-8 tracks x 256 steps = 2048 binary cells = 256 bytes raw
-+ BPM (40-240)
-+ Swing (0-80)
-+ Kit (6 options)
-+ 8 volume levels (0-100 each)
+8 tracks × 256 steps = 2,048 binary cells = 256 bytes raw
++ BPM (40–240)
++ Swing (0–80)
++ Kit (1 of 6)
++ 8 volume levels (0–100 each)
 ```
 
-A naive encoding at max grid size would be 256+ bytes, which base64url-expands to 342+ characters. The old hex-per-row format with dot separators was even worse: 515 characters for a 236-step beat.
+Our old encoding used hex digits per row with dot separators. A 236-step beat? **515 characters.** Try fitting that in a tweet.
 
-## Algorithms We Tested
+## The Compression Tournament
 
-### 1. Raw Bitpacking
+We tried five approaches. Most of them lost.
 
-The simplest approach: pack each cell as one bit, 8 cells per byte.
+### Round 1: Raw Bitpacking
 
-- 8 x 16 grid = 16 bytes
-- 8 x 256 grid = 256 bytes
-- No compression at all — every cell costs exactly 1 bit regardless of content
+The simplest thing that could work: one bit per cell, eight cells per byte.
 
-### 2. Run-Length Encoding (RLE)
+A 16-step grid becomes 16 bytes. A 256-step grid becomes 256 bytes. No intelligence, no savings. This is our baseline.
 
-Encode consecutive runs of 0s and 1s as (value, count) pairs.
+**Verdict:** Honest, but unambitious.
 
-- Works well for long runs (e.g., an empty track is just "0, 256")
-- Terrible for beat patterns — a typical kick pattern like `1000100010001000` has short alternating runs
-- A 16-step beat encoded to 66 bytes (worse than raw!)
+### Round 2: Run-Length Encoding
 
-### 3. Deflate (zlib) and Brotli
+RLE encodes streaks — "42 zeros, then 1 one, then 3 zeros..." Works great for fax machines and pixel art. Works *terribly* for drum beats.
 
-General-purpose compressors used in HTTP, ZIP files, etc.
+Why? A kick pattern like `1000100010001000` has *short alternating runs*. Each run needs a value byte and a count byte. A 16-step beat ballooned to **66 bytes**. That's 4× worse than raw bitpacking.
 
-- Deflate uses LZ77 (sliding window dictionary) + Huffman coding
-- Brotli adds a pre-built dictionary and context modeling
-- Both have significant **framing overhead** — headers, Huffman tables, block markers
-- At our data sizes (16-256 bytes), this overhead dominates
+**Verdict:** Showed up to a knife fight with a spoon.
 
-Results on a real 16-step beat:
-- Deflate: 31 bytes (worse than raw 16 bytes!)
-- Brotli: 23 bytes (still worse than raw)
+### Round 3: Deflate & Brotli
 
-These compressors are designed for kilobytes-to-megabytes. At our scale, they're anti-compressors.
+These are the heavy hitters — the algorithms behind gzip, ZIP files, and HTTP compression. Surely they'd crush our little grid?
 
-### 4. Arithmetic Coding
+Nope. On a 16-step beat:
+- **Deflate:** 31 bytes (nearly 2× worse than raw!)
+- **Brotli:** 23 bytes (still worse than raw)
 
-Instead of assigning fixed-length codes (like Huffman), arithmetic coding represents the **entire message as a single number** in the interval [0, 1). Each symbol narrows the interval based on its probability. More probable symbols narrow it less (fewer bits), less probable symbols narrow it more.
+The problem is *overhead*. These compressors ship a whole toolbox with every output — Huffman tables, dictionary headers, block markers. That toolbox weighs more than our actual data. They're built for compressing web pages, not 16-byte grids.
 
-The interval shrinks multiplicatively:
+**Verdict:** Bringing a semi truck to deliver a letter.
+
+### Round 4: Arithmetic Coding
+
+Now we're talking. Instead of assigning fixed codes to symbols (like Huffman does), arithmetic coding represents the *entire message* as a single number between 0 and 1. Each bit narrows the interval:
+
 ```
-Start: [0.0, 1.0)
+Start:                         [0.0, 1.0)
 After encoding "0" (prob 0.8): [0.0, 0.8)
 After encoding "0" (prob 0.8): [0.0, 0.64)
 After encoding "1" (prob 0.2): [0.512, 0.64)
 ...
 ```
 
-The final interval width determines how many bits we need to identify a point within it: ceil(-log2(width)) bits. This gets within 1-2 bits of the Shannon entropy.
+More probable symbols barely move the interval (cheap!). Rare symbols squeeze it hard (expensive, but rare). The final interval width tells you how many bits you need. This gets within 1–2 bits of Shannon's theoretical limit.
 
-### 5. Adaptive Arithmetic Coding (What We Use)
+**Verdict:** Now we're cooking.
 
-"Adaptive" means the probability model **updates as it encodes**. It starts knowing nothing and learns the statistics of the data on the fly. The decoder mirrors the same learning process, so no probability tables need to be stored in the output.
+### Round 5: Adaptive Arithmetic Coding ← The Winner
 
-## Context Models We Tested
+"Adaptive" is the secret sauce. The encoder starts knowing *nothing* about the data — it assumes 50/50 for every bit. But as it encodes, it *learns*. After seeing a few bits of a sparse track, it figures out "oh, 0s are way more common" and starts encoding 0s cheaply.
 
-The **context model** determines what information the encoder uses to predict the next bit. Better predictions = smaller output.
+The beautiful part? The decoder does the exact same learning in the exact same order. No probability tables, no side information, no overhead. Just the raw bitstream.
 
-### Order-1: Previous bit
+**Verdict:** 🏆
 
-```
-Context = previous bit (0 or 1)
-2 possible contexts
-```
+## The Context Model Showdown
 
-### Order-2: Previous 2 bits (what we chose)
+An arithmetic coder is only as good as its predictions. The *context model* decides what information to use when predicting the next bit. We tested five:
 
-```
-Context = prev2 + prev1 (e.g., "01", "10", "00", "11")
-4 possible contexts + startup context
-```
+| Model | How it predicts | Contexts |
+|---|---|---|
+| **Order-1** | Looks at the previous bit | 2 |
+| **Order-2** | Looks at the previous 2 bits | 4 + startup |
+| **Order-3** | Looks at the previous 3 bits | 8 + startup |
+| **Period-4** | Looks at the bit 4 steps ago | 2 |
+| **Period-4+8+prev** | Looks at bits 4 and 8 steps ago + previous | 8 |
 
-### Order-3: Previous 3 bits
+Period-aware models are musically clever — they know that beats tend to repeat every quarter note. But cleverness has a cost: more contexts means more to learn, and small grids don't have enough data for the model to warm up.
 
-```
-Context = prev3 + prev2 + prev1
-8 possible contexts + startup contexts
-```
+### The Benchmark
 
-### Period-4: Beat-aligned lookback
-
-```
-Context = bit at step (s - 4)
-Exploits the musical fact that beats repeat every 4 steps
-```
-
-### Period-4+8+prev: Multi-period with local context
-
-```
-Context = bit at (s-4) + bit at (s-8) + previous bit
-Captures both quarter-note and half-note periodicity
-```
-
-### Results on Real Beat Patterns
-
-Grid entropy in bytes (lower = better), grid data only:
+Grid entropy in bytes (lower = better):
 
 | Pattern | order-1 | order-2 | order-3 | period-4 | p4+8+prev | raw |
 |---|---|---|---|---|---|---|
@@ -163,130 +129,121 @@ Grid entropy in bytes (lower = better), grid data only:
 | Empty 256 | 9 | 10 | 11 | 12 | 12 | 256 |
 | Pseudo-random 64 | 60 | 54 | 33 | 40 | 44 | 64 |
 
-### Key Findings
+### What the Numbers Say
 
-**No single context model wins everywhere.** The results split by grid size:
+**Short grids (4–16 steps):** Order-1 and order-2 tie or win. Fancier models have too many contexts and not enough data to fill them — the Laplace prior overhead eats any theoretical gain.
 
-**Short grids (4-16 steps):** Order-1 and order-2 are tied or best. Higher-order and period-aware models have too many contexts for the small amount of data — the Laplace prior overhead per context dominates. With only 16 bits per track, there simply isn't enough data to train a complex model.
+**Medium grids (32–64 steps):** Order-2 and order-3 do well. Period-4 starts helping on repetitive patterns but hurts on irregular ones.
 
-**Medium grids (32-64 steps):** Order-2 and order-3 do well. Period-4 starts helping on repetitive patterns but hurts on irregular ones.
+**Long repetitive grids (128–256 steps):** Period-4+8+prev crushes it. A 256-step four-on-the-floor compresses to 30 bytes vs 71 for order-2. It *knows* the music.
 
-**Long repetitive grids (128-256 steps):** Period-4+8+prev dominates — it directly encodes the musical structure (beats repeat every 4 steps). A 256-step 4-on-floor pattern compresses to 30 bytes vs 71 for order-2.
+**Long non-repetitive grids:** Order-3 edges ahead. On a 236-step hand-drawn beat, it saved... 6 bytes over order-2. Five percent.
 
-**Long non-repetitive grids:** Order-3 edges ahead. For the 236-step hand-drawn beat (non-periodic, 19% density), order-3 achieved 113 bytes vs order-2's 119 — only a 5% improvement.
+### Why We Picked Order-2
 
-### Why We Chose Order-2
+1. **Wins where it matters** — most beats are 16–32 steps
+2. **Close enough everywhere else** — within 5% of the best model on long grids
+3. **Dead simple** — four contexts, one code path, no branching on grid size
+4. **Fast learner** — with only 4 contexts to fill, it adapts in the first few bits
 
-1. **Best or tied-for-best on short grids** — which is the common case (most beats are 16-32 steps)
-2. **Within 5% of optimal on long grids** — the cases where period-aware models win are exactly the cases where order-2 is already very compact
-3. **Simple implementation** — one code path, no mode flags, no step-count-dependent branching
-4. **Minimal context fragmentation** — only 4 contexts (00, 01, 10, 11) + startup, so the model adapts quickly even on short tracks
+The maximum gain from always picking the perfect model? About 8 URL characters on a 236-step beat. Not worth the complexity. Shipping beats, not PhD theses.
 
-The maximum theoretical gain from switching to the best-possible model for each pattern would be ~8 characters on a 236-step beat. Not worth the complexity.
+## Under the Hood
 
-## Implementation Details
-
-### Binary Payload Format
+### The Binary Format
 
 ```
-Byte 0:    bpm - 40              (0-200, maps to BPM 40-240)
-Byte 1:    swing                 (0-80)
-Byte 2:    kitIdx | volFlag<<7   (bit 7 = 1 if all volumes are default 80)
-Byte 3:    stepCount / 4         (1-64, maps to 4-256 steps)
-Bytes 4-11: volumes              (only present if volFlag = 0, each 0-100)
-Remaining:  arithmetic-coded grid bitstream
+Byte 0:     BPM - 40              (0–200 → BPM 40–240)
+Byte 1:     Swing                 (0–80)
+Byte 2:     Kit | DefaultVols<<7  (bit 7 = 1 if all volumes are default 80)
+Byte 3:     Steps ÷ 4            (1–64 → 4–256 steps)
+Bytes 4–11: Volumes               (only if bit 7 above is 0)
+Rest:       Arithmetic-coded grid
 ```
 
-The header is 4 bytes when all volumes are default (common case), or 12 bytes with custom volumes.
+Four bytes of header when volumes are default. Twelve if you've tweaked them. Then the compressed grid.
 
-### Range Coder
+### The Range Coder
 
-We use a 48-bit precision range coder implemented with BigInt. The algorithm maintains an interval [lo, hi) that narrows with each encoded bit:
+We use a 48-bit precision range coder with BigInt. The algorithm maintains an interval [lo, hi) and narrows it with each encoded bit:
 
-```
-1. Divide the interval proportionally: mid = lo + range * p0 / total
-2. If encoding 0: hi = mid
-3. If encoding 1: lo = mid
-4. Renormalize: shift out MSBs when lo and hi agree on them
-```
+1. Split the interval proportionally: `mid = lo + range × p₀ / total`
+2. Encoding a 0? → `hi = mid`
+3. Encoding a 1? → `lo = mid`
+4. When lo and hi agree on their leading bits, shift those out
 
-The "pending bits" mechanism handles the case where lo and hi straddle the midpoint — these bits are deferred until the next unambiguous output.
+A "pending bits" mechanism handles the annoying case where lo and hi straddle the midpoint — those bits wait in limbo until the next unambiguous output.
 
-48-bit precision (vs 32-bit) avoids precision loss during the range * p0 / total calculation, which matters when encoding long sequences.
+Why 48-bit instead of 32-bit? Precision. The `range × p₀ / total` calculation accumulates rounding error over long sequences. 48 bits keeps it honest.
 
-### Adaptive Model
+### The Adaptive Model
 
-Each track gets its own context model. The model is a map from context string to [count0, count1]:
+Each track gets its own model — a tiny lookup table:
 
 ```
-Context "S"  → [count of 0s, count of 1s] (startup, first 2 bits)
-Context "00" → [count of 0s, count of 1s] (after seeing two 0s)
-Context "01" → [count of 0s, count of 1s]
-Context "10" → [count of 0s, count of 1s]
-Context "11" → [count of 0s, count of 1s]
+After "S"  (startup) → [count₀, count₁]  (first 2 bits)
+After "00"           → [count₀, count₁]
+After "01"           → [count₀, count₁]
+After "10"           → [count₀, count₁]
+After "11"           → [count₀, count₁]
 ```
 
-Each context starts with a Laplace prior of [1, 1] (equal probability). As bits are encoded, the counts update, and predictions improve. The decoder runs the identical model, updating in the same order, so it stays in sync without any side information.
+Every context starts at [1, 1] (the Laplace prior — "I have no idea, maybe 50/50?"). As bits flow through, the counts update and predictions sharpen. The decoder mirrors this exactly, so it stays perfectly in sync without needing any extra data in the URL.
 
-### Base64url Encoding
+### URL Encoding
 
-The binary payload is encoded as base64url (RFC 4648 Section 5) for URL safety:
-- Standard base64 with `+` → `-`, `/` → `_`, padding stripped
-- 4:3 expansion ratio (3 bytes → 4 characters)
-- Pure JS implementation using `btoa`/`atob` — no dependencies
+The binary payload gets base64url-encoded (RFC 4648 §5): standard base64 but with `-` instead of `+` and `_` instead of `/`, padding stripped. Three bytes become four characters. Pure JS via `btoa`/`atob` — zero dependencies.
 
-### Format Detection
+Old-format URLs (hex with dot separators) still work — the app detects them, decodes, re-encodes in the new format, and silently updates the URL bar. Your old bookmarks survive.
 
-Old URLs (hex-per-row with dot separators) are still supported:
-- Hash contains `.` → old format decoder
-- Hash has no `.` → new arithmetic format decoder
+## The Results
 
-Old URLs auto-convert on load: the app decodes the old format, then re-encodes with the new format, updating the URL bar automatically.
+### Real Beats, Real Numbers
 
-## Compression Results
-
-### Measured on Real Beats
-
-| Beat | Raw bits | Raw bitpack | Arithmetic (order-2) | URL chars |
-|------|----------|-------------|---------------------|-----------|
+| Beat | Raw bits | Bitpacked | Arithmetic | URL chars |
+|---|---|---|---|---|
 | 16-step pattern | 128 | 16 B | 13 B | 22 |
 | 32-step trap | 256 | 32 B | ~12 B | ~22 |
 | 64-step periodic | 512 | 64 B | 14 B | 24 |
-| 236-step complex | 1888 | 236 B | 119 B | 164 |
-| 256-step random | 2048 | 256 B | ~176 B | 240 |
+| 236-step complex | 1,888 | 236 B | 119 B | 164 |
+| 256-step random | 2,048 | 256 B | ~176 B | 240 |
 | Empty 16-step | 128 | 16 B | 7 B | 14 |
-| Empty 256-step | 2048 | 256 B | ~7 B | 14 |
+| Empty 256-step | 2,048 | 256 B | ~7 B | 14 |
 
-### Distance from Theoretical Limits
+That empty 256-step grid compressing to the same 14 characters as the empty 16-step one? That's entropy doing its thing — silence contains no information, regardless of how long you're silent for.
 
-For a real 16-step beat (17% density):
-- Shannon entropy floor: ~11 bytes (85 bits)
-- Our encoder output: 13 bytes (grid portion)
-- Gap: **2 bytes** (1 byte = arithmetic coder flush overhead, ~1 byte = Laplace prior cost on small data)
+### How Close to Perfect?
+
+For a 16-step beat (17% density):
+- **Shannon floor:** ~11 bytes
+- **Our output:** 13 bytes
+- **Gap:** 2 bytes. One byte is the arithmetic coder's flush overhead (unavoidable). The other is the Laplace prior warming up on small data.
 
 For a 236-step beat (19% density):
-- Shannon entropy floor (order-2): ~112 bytes
-- Our encoder output: 119 bytes
-- Gap: **7 bytes** (~6% overhead)
+- **Shannon floor:** ~112 bytes
+- **Our output:** 119 bytes
+- **Gap:** 7 bytes (~6% overhead)
 
-### Why Other Compressors Lose
+We're leaving pennies on the table, not dollars.
+
+### The Losers, Ranked
 
 On the 16-step beat (128 bits of grid data):
 
-| Method | Grid bytes | Why |
-|--------|-----------|-----|
-| **Arithmetic (ours)** | **13** | Near-optimal, ~1 byte flush overhead |
-| Raw bitpack | 16 | No compression, 1 bit per cell |
-| Brotli (quality 11) | 23 | Dictionary + framing overhead > data |
-| Deflate (level 9) | 31 | LZ77 window + Huffman tables > data |
-| RLE | 66 | Short alternating runs, 2 bytes per run |
+| Method | Grid bytes | What went wrong |
+|---|---|---|
+| **Arithmetic (ours)** | **13** | Nothing. ~1 byte flush overhead. |
+| Raw bitpack | 16 | No compression at all |
+| Brotli (quality 11) | 23 | Framing overhead bigger than the data |
+| Deflate (level 9) | 31 | Huffman tables alone weigh more than the grid |
+| RLE | 66 | 2 bytes per run × many short runs = disaster |
 
-General-purpose compressors break even around 500-1000 bytes of input. Below that, their metadata overhead exceeds the compression savings. Our arithmetic coder has zero framing overhead — the only cost is the ~1 byte flush at the end of the bitstream.
+General-purpose compressors need ~500–1,000 bytes of input before their overhead pays for itself. Below that, they're *anti*-compressors. Our arithmetic coder has zero framing overhead — the only cost is that ~1 byte flush at the end.
 
-## Further Reading
+## Want to Go Deeper?
 
 - [Shannon, "A Mathematical Theory of Communication" (1948)](https://people.math.harvard.edu/~ctm/home/text/others/shannon/entropy/entropy.pdf) — the paper that started it all
 - [Arithmetic Coding for Data Compression](https://en.wikipedia.org/wiki/Arithmetic_coding) — Wikipedia overview with worked examples
-- [Data Compression Explained](http://mattmahoney.net/dc/dce.html) — Matt Mahoney's comprehensive guide covering entropy, Huffman, arithmetic coding, and context modeling
-- [Introduction to Data Compression](https://www.cs.cmu.edu/~guyb/realworld/compression.pdf) — CMU lecture notes on the math behind compression
-- [Range encoding](https://en.wikipedia.org/wiki/Range_coding) — the practical variant of arithmetic coding we implement (avoids patent issues with the original)
+- [Data Compression Explained](http://mattmahoney.net/dc/dce.html) — Matt Mahoney's comprehensive guide
+- [Introduction to Data Compression](https://www.cs.cmu.edu/~guyb/realworld/compression.pdf) — CMU lecture notes on the math
+- [Range encoding](https://en.wikipedia.org/wiki/Range_coding) — the practical variant we implement (bonus: no patent drama)
