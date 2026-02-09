@@ -170,6 +170,16 @@ export function Controls({
             <Drum size={11} /> {kitLabels[kit]}
           </button>
 
+          {/* Presets toggle */}
+          <button data-mobile-presets-toggle onClick={() => setMobilePresetsOpen(!mobilePresetsOpen)} style={{
+            ...section, padding: "0 8px", border: "none", borderLeft: "1px solid rgba(255,255,255,0.08)",
+            cursor: "pointer", fontSize: 8, fontWeight: 600, letterSpacing: 1, fontFamily: "var(--font-mono)",
+            color: mobilePresetsOpen ? "#fff" : "#888", gap: 3, background: "none",
+          }}>
+            <span>PRE</span>
+            <ChevronDown size={10} style={{ transform: mobilePresetsOpen ? "rotate(180deg)" : "none", transition: "transform 0.15s" }} />
+          </button>
+
           <div style={{ flex: 1 }} />
 
           <button
@@ -220,12 +230,6 @@ export function Controls({
           <button onClick={clearAll} style={mobileActionBtn} title="Clear"><Trash2 size={13} /></button>
           <button onClick={shareURL} style={{ ...mobileActionBtn, color: "var(--hihat)" }} title="Share"><Link size={13} /></button>
           <button onClick={handleExport} style={{ ...mobileActionBtn, color: "var(--clap)" }} title="Export WAV"><Download size={13} /></button>
-
-          {/* Presets toggle */}
-          <button data-mobile-presets-toggle onClick={() => setMobilePresetsOpen(!mobilePresetsOpen)} style={{ ...mobileActionBtn, color: mobilePresetsOpen ? "#fff" : "#888", gap: 3 }} title="Presets">
-            <span style={{ fontSize: 8, letterSpacing: 1, fontFamily: "var(--font-mono)" }}>PRE</span>
-            <ChevronDown size={11} style={{ transform: mobilePresetsOpen ? "rotate(180deg)" : "none", transition: "transform 0.15s" }} />
-          </button>
 
           <div style={{ flex: 1 }} />
           <a href="https://github.com/Royal-lobster/beaturl" target="_blank" rel="noopener noreferrer" style={{ ...mobileActionBtn, color: "#888" }} title="GitHub"><Github size={13} /></a>
