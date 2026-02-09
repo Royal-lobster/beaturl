@@ -29,21 +29,15 @@ export function getAudioContext(): AudioContext {
  * we await it and play a silent buffer via <audio> to bypass the mute switch,
  * then unlock the Web Audio context.
  */
+let _muteCheckDone = false;
+
 export async function ensureAudioUnlocked(): Promise<AudioContext> {
   const ctx = getAudioContext();
-
-  // On iOS, playing a tiny <audio> element from a user gesture overrides the
-  // silent/mute switch for the entire page's audio session.
-  try {
-    const audio = new Audio("data:audio/mp3;base64,SUQzBAAAAAAAI1RTU0UAAAAPAAADTGF2ZjU4Ljc2LjEwMAAAAAAAAAAAAAAA//tQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAWGluZwAAAA8AAAACAAABhgC7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7//////////////////////////////////////////////////////////////////8AAAAATGF2YzU4LjEzAAAAAAAAAAAAAAAAJAAAAAAAAAAAAYYoRwMHAAAAAAD/+1DEAAAHAAGf9AAAIiSAM/80AAATQASABMH5cHwfB8HwfB+Xf/B8Hw//8uD4f//5cHw////+XB8AAAAAAB8HwfB8HwfB8H///y4Pg+D4Pg+D7////////lwAAAAAAAAAVEFHAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA//tQxAADwAABpAAAACAAADSAAAAETEFNRTMuMTAwVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVQ==");
-    audio.volume = 0.01;
-    await audio.play();
-  } catch (_) { /* ignore — best effort mute switch bypass */ }
 
   if (ctx.state === "suspended") {
     await ctx.resume();
   }
-  // Also play silent buffer through Web Audio to fully activate it
+  // Play silent buffer through Web Audio to fully activate it
   try {
     const buf = ctx.createBuffer(1, 1, ctx.sampleRate);
     const src = ctx.createBufferSource();
@@ -52,6 +46,49 @@ export async function ensureAudioUnlocked(): Promise<AudioContext> {
     src.start(0);
   } catch (_) { /* ignore */ }
   return ctx;
+}
+
+/**
+ * Detect if iOS mute switch is likely on by playing an inaudible test tone
+ * and checking if the analyser picks up any signal. Returns true if muted.
+ * Only runs once; subsequent calls return false.
+ */
+export function checkMuteSwitchOnce(onMuted: () => void): void {
+  if (_muteCheckDone) return;
+  // Only check on iOS (iPhone/iPad with touch)
+  if (typeof navigator === "undefined") return;
+  const ua = navigator.userAgent;
+  const isIOS = /iPhone|iPad|iPod/.test(ua) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+  if (!isIOS) return;
+  _muteCheckDone = true;
+
+  const ctx = getAudioContext();
+  const testAnalyser = ctx.createAnalyser();
+  testAnalyser.fftSize = 256;
+
+  // Play a very short, inaudible-level tone through the analyser
+  const osc = ctx.createOscillator();
+  const gain = ctx.createGain();
+  osc.frequency.value = 200;
+  gain.gain.value = 0.001; // essentially inaudible
+  osc.connect(gain);
+  gain.connect(testAnalyser);
+  gain.connect(ctx.destination);
+  osc.start();
+
+  // Check after 200ms if analyser has any signal
+  setTimeout(() => {
+    const data = new Uint8Array(testAnalyser.frequencyBinCount);
+    testAnalyser.getByteFrequencyData(data);
+    osc.stop();
+    osc.disconnect();
+    gain.disconnect();
+
+    const hasSignal = data.some((v) => v > 0);
+    if (!hasSignal) {
+      onMuted();
+    }
+  }, 200);
 }
 
 export function getAnalyser(): AnalyserNode | null {
