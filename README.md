@@ -66,7 +66,7 @@ A typical 16-step beat compresses to just **22 characters**.
 
 Copy the URL → share it → anyone hears your beat.
 
-> **Deep dive:** [COMPRESSION.md](./COMPRESSION.md) — the information theory, algorithm comparisons, and benchmarks behind this encoding.
+> **Deep dive:** [How We Squeezed Drum Beats into URLs](https://blog.srujangurram.me/how-we-squeezed-drum-beats-into-urls) — the information theory, algorithm comparisons, and benchmarks behind this encoding.
 
 ## 🛠️ Tech
 
