@@ -373,7 +373,7 @@ export function Sequencer() {
 
       {/* Grid area */}
       <div className="flex-1 relative overflow-x-auto overflow-y-hidden p-0">
-        <div style={{ minWidth: cellMinWidth ? `${cellMinWidth * stepCount + 70}px` : undefined }}>
+        <div style={{ minWidth: "100%", width: "max-content" }}>
         {/* Step indicators top */}
         <div className="flex h-4 shrink-0" style={{ position: "relative", zIndex: 1 }}>
           <div className="w-[50px] md:w-[70px] shrink-0 z-10" style={{ background: "#0e0e1a", position: "sticky", left: 0, borderRight: "1px solid rgba(255,255,255,0.04)" }} />
