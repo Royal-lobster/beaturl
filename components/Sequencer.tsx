@@ -118,7 +118,13 @@ export function Sequencer() {
   const toggleCell = useCallback((r: number, c: number) => {
     setGrid((prev) => {
       const next = prev.map((row) => [...row]);
-      next[r][c] = next[r][c] ? 0 : 1;
+      const wasOn = next[r][c];
+      next[r][c] = wasOn ? 0 : 1;
+      // Play sound preview when toggling a cell ON
+      if (!wasOn) {
+        const t = getAudioContext().currentTime;
+        playSound(kitRef.current, TRACKS[r].key, t, volumesRef.current[r]);
+      }
       return next;
     });
   }, []);
