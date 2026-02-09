@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef, useCallback } from "react";
-import { TRACKS, STEPS, playSound, getAudioContext, ensureAudioUnlocked, checkMuteSwitchOnce, getAnalyser, exportToWav, type KitName } from "@/lib/audio";
+import { TRACKS, STEPS, playSound, getAudioContext, ensureAudioUnlocked, showIOSMuteHintOnce, getAnalyser, exportToWav, type KitName } from "@/lib/audio";
 import { encodeState, decodeState } from "@/lib/url-state";
 import { PRESETS } from "@/lib/presets";
 import { Visualizer } from "./Visualizer";
@@ -139,8 +139,8 @@ export function Sequencer() {
       if (timerRef.current) clearTimeout(timerRef.current);
     } else {
       await ensureAudioUnlocked();
-      checkMuteSwitchOnce(() => {
-        toastManager.add({ title: "No sound? Turn off silent mode 🔇" });
+      showIOSMuteHintOnce(() => {
+        toastManager.add({ title: "No sound? Check your silent switch 🔇" });
       });
       playingRef.current = true;
       setPlaying(true);

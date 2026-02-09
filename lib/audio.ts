@@ -29,8 +29,6 @@ export function getAudioContext(): AudioContext {
  * we await it and play a silent buffer via <audio> to bypass the mute switch,
  * then unlock the Web Audio context.
  */
-let _muteCheckDone = false;
-
 export async function ensureAudioUnlocked(): Promise<AudioContext> {
   const ctx = getAudioContext();
 
@@ -49,46 +47,18 @@ export async function ensureAudioUnlocked(): Promise<AudioContext> {
 }
 
 /**
- * Detect if iOS mute switch is likely on by playing an inaudible test tone
- * and checking if the analyser picks up any signal. Returns true if muted.
- * Only runs once; subsequent calls return false.
+ * Show a one-time iOS mute switch hint. Only fires once ever (localStorage).
+ * Only targets iOS devices.
  */
-export function checkMuteSwitchOnce(onMuted: () => void): void {
-  if (_muteCheckDone) return;
-  // Only check on iOS (iPhone/iPad with touch)
-  if (typeof navigator === "undefined") return;
+export function showIOSMuteHintOnce(onShow: () => void): void {
+  if (typeof navigator === "undefined" || typeof localStorage === "undefined") return;
   const ua = navigator.userAgent;
   const isIOS = /iPhone|iPad|iPod/.test(ua) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
   if (!isIOS) return;
-  _muteCheckDone = true;
-
-  const ctx = getAudioContext();
-  const testAnalyser = ctx.createAnalyser();
-  testAnalyser.fftSize = 256;
-
-  // Play a very short, inaudible-level tone through the analyser
-  const osc = ctx.createOscillator();
-  const gain = ctx.createGain();
-  osc.frequency.value = 200;
-  gain.gain.value = 0.001; // essentially inaudible
-  osc.connect(gain);
-  gain.connect(testAnalyser);
-  gain.connect(ctx.destination);
-  osc.start();
-
-  // Check after 200ms if analyser has any signal
-  setTimeout(() => {
-    const data = new Uint8Array(testAnalyser.frequencyBinCount);
-    testAnalyser.getByteFrequencyData(data);
-    osc.stop();
-    osc.disconnect();
-    gain.disconnect();
-
-    const hasSignal = data.some((v) => v > 0);
-    if (!hasSignal) {
-      onMuted();
-    }
-  }, 200);
+  const key = "beaturl-ios-mute-hint";
+  if (localStorage.getItem(key)) return;
+  localStorage.setItem(key, "1");
+  onShow();
 }
 
 export function getAnalyser(): AnalyserNode | null {
