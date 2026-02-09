@@ -66,6 +66,8 @@ A typical 16-step beat compresses to just **22 characters**.
 
 Copy the URL → share it → anyone hears your beat.
 
+> **Deep dive:** [COMPRESSION.md](./COMPRESSION.md) — the information theory, algorithm comparisons, and benchmarks behind this encoding.
+
 ## 🛠️ Tech
 
 - Next.js 16 (App Router)
