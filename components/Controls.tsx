@@ -101,13 +101,16 @@ export function Controls({
   onUndo, onRedo, canUndo, canRedo,
 }: ControlsProps) {
   const [presetsOpen, setPresetsOpen] = useState(false);
+  const [presetsPos, setPresetsPos] = useState({ top: 0, left: 0 });
   const [mobilePresetsOpen, setMobilePresetsOpen] = useState(false);
   const presetsRef = useRef<HTMLDivElement>(null);
+  const presetsDropdownRef = useRef<HTMLDivElement>(null);
   const mobilePresetsRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const handler = (e: MouseEvent) => {
-      if (presetsRef.current && !presetsRef.current.contains(e.target as Node)) {
+      if (presetsRef.current && !presetsRef.current.contains(e.target as Node) &&
+          (!presetsDropdownRef.current || !presetsDropdownRef.current.contains(e.target as Node))) {
         setPresetsOpen(false);
       }
       if (mobilePresetsRef.current && !mobilePresetsRef.current.contains(e.target as Node) &&
@@ -272,7 +275,7 @@ export function Controls({
     );
 
   const desktopToolbar = (
-    <div className="hidden lg:block">
+    <div className="hidden lg:block" style={{ position: "relative", zIndex: 50 }}>
     <div style={{
       width: "100%",
       background: "var(--surface)",
@@ -280,8 +283,6 @@ export function Controls({
       display: "flex",
       flexWrap: "nowrap",
       alignItems: "center",
-      position: "relative",
-      zIndex: 50,
       fontFamily: "var(--font-mono)",
       overflowX: "auto",
       overflowY: "hidden",
@@ -401,46 +402,16 @@ export function Controls({
       </div>
 
       {/* Presets */}
-      <div ref={presetsRef} style={{ position: "relative", height: 40 }}>
-        <button onClick={() => setPresetsOpen(!presetsOpen)} style={{ ...actionBtn, borderLeft: "none", borderRight: "none" }}>
-          PRESETS <ChevronDown size={10} />
+      <div ref={presetsRef} style={{ height: 40 }}>
+        <button onClick={() => {
+          if (!presetsOpen && presetsRef.current) {
+            const rect = presetsRef.current.getBoundingClientRect();
+            setPresetsPos({ top: rect.bottom, left: rect.left });
+          }
+          setPresetsOpen(!presetsOpen);
+        }} style={{ ...actionBtn, borderLeft: "none", borderRight: "none", color: presetsOpen ? "#fff" : "#888" }}>
+          PRESETS <ChevronDown size={10} style={{ transform: presetsOpen ? "rotate(180deg)" : "none", transition: "transform 0.15s" }} />
         </button>
-        {presetsOpen && (
-          <div style={{
-            position: "absolute",
-            top: "100%",
-            left: 0,
-            background: "var(--surface)",
-            border: "1px solid rgba(255,255,255,0.08)",
-            minWidth: 180,
-            zIndex: 50,
-          }}>
-            {PRESETS.map((p, i) => (
-              <button
-                key={p.name}
-                onClick={() => { loadPreset(i); setPresetsOpen(false); }}
-                style={{
-                  display: "block",
-                  width: "100%",
-                  textAlign: "left",
-                  padding: "8px 12px",
-                  fontSize: 10,
-                  letterSpacing: 1,
-                  color: "var(--text)",
-                  background: "transparent",
-                  border: "none",
-                  borderBottom: "1px solid rgba(255,255,255,0.04)",
-                  cursor: "pointer",
-                  fontFamily: "var(--font-mono)",
-                }}
-                onMouseEnter={(e) => (e.currentTarget.style.background = "rgba(255,255,255,0.04)")}
-                onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
-              >
-                {p.name}
-              </button>
-            ))}
-          </div>
-        )}
       </div>
 
       {/* Spacer */}
@@ -472,6 +443,43 @@ export function Controls({
         <Download size={11} /> <span className="hidden lg:inline">WAV</span>
       </button>
     </div>
+    {/* Presets dropdown – fixed position to escape overflow clipping */}
+    {presetsOpen && (
+      <div ref={presetsDropdownRef} style={{
+        position: "fixed",
+        top: presetsPos.top,
+        left: presetsPos.left,
+        background: "var(--surface)",
+        border: "1px solid rgba(255,255,255,0.08)",
+        minWidth: 180,
+        zIndex: 100,
+      }}>
+        {PRESETS.map((p, i) => (
+          <button
+            key={p.name}
+            onClick={() => { loadPreset(i); setPresetsOpen(false); }}
+            style={{
+              display: "block",
+              width: "100%",
+              textAlign: "left",
+              padding: "8px 12px",
+              fontSize: 10,
+              letterSpacing: 1,
+              color: "var(--text)",
+              background: "transparent",
+              border: "none",
+              borderBottom: "1px solid rgba(255,255,255,0.04)",
+              cursor: "pointer",
+              fontFamily: "var(--font-mono)",
+            }}
+            onMouseEnter={(e) => (e.currentTarget.style.background = "rgba(255,255,255,0.04)")}
+            onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
+          >
+            {p.name}
+          </button>
+        ))}
+      </div>
+    )}
     </div>
   );
 
