@@ -25,6 +25,38 @@ export function Sequencer() {
 
   const stepCount = grid[0]?.length || STEPS;
 
+  // Undo/redo history
+  const undoStackRef = useRef<number[][][]>([]);
+  const redoStackRef = useRef<number[][][]>([]);
+  const MAX_UNDO = 50;
+
+  const setGridWithHistory = useCallback((updater: number[][] | ((prev: number[][]) => number[][])) => {
+    setGrid((prev) => {
+      const next = typeof updater === "function" ? updater(prev) : updater;
+      if (next === prev) return prev; // no change
+      undoStackRef.current.push(prev.map((r) => [...r]));
+      if (undoStackRef.current.length > MAX_UNDO) undoStackRef.current.shift();
+      redoStackRef.current = []; // clear redo on new action
+      return next;
+    });
+  }, []);
+
+  const undo = useCallback(() => {
+    const stack = undoStackRef.current;
+    if (stack.length === 0) return;
+    const prev = stack.pop()!;
+    redoStackRef.current.push(gridRef.current.map((r) => [...r]));
+    setGrid(prev);
+  }, []);
+
+  const redo = useCallback(() => {
+    const stack = redoStackRef.current;
+    if (stack.length === 0) return;
+    const next = stack.pop()!;
+    undoStackRef.current.push(gridRef.current.map((r) => [...r]));
+    setGrid(next);
+  }, []);
+
   const playingRef = useRef(false);
   const stepRef = useRef(-1);
   const bpmRef = useRef(bpm);
@@ -110,16 +142,25 @@ export function Sequencer() {
         e.preventDefault();
         togglePlay();
       }
+      if ((e.metaKey || e.ctrlKey) && e.key === "z") {
+        e.preventDefault();
+        if (e.shiftKey) redo();
+        else undo();
+      }
+      if ((e.metaKey || e.ctrlKey) && e.key === "y") {
+        e.preventDefault();
+        redo();
+      }
     };
     document.addEventListener("keydown", handler);
     return () => document.removeEventListener("keydown", handler);
-  }, [togglePlay]);
+  }, [togglePlay, undo, redo]);
 
   // Drawing state for click-and-drag
-  const drawingRef = useRef<{ active: boolean; mode: number | null }>({ active: false, mode: null });
+  const drawingRef = useRef<{ active: boolean; mode: number | null; snapshot: number[][] | null }>({ active: false, mode: null, snapshot: null });
 
   const toggleCell = useCallback((r: number, c: number) => {
-    setGrid((prev) => {
+    setGridWithHistory((prev) => {
       const next = prev.map((row) => [...row]);
       const wasOn = next[r][c];
       next[r][c] = wasOn ? 0 : 1;
@@ -129,9 +170,9 @@ export function Sequencer() {
       }
       return next;
     });
-  }, []);
+  }, [setGridWithHistory]);
 
-  const setCell = useCallback((r: number, c: number, value: number) => {
+  const setCellRaw = useCallback((r: number, c: number, value: number) => {
     setGrid((prev) => {
       if (prev[r][c] === value) return prev;
       const next = prev.map((row) => [...row]);
@@ -145,20 +186,30 @@ export function Sequencer() {
   }, []);
 
   const handleCellPointerDown = useCallback((r: number, c: number) => {
+    // Save snapshot for undo before drag starts
+    const snapshot = gridRef.current.map((row) => [...row]);
     const currentVal = gridRef.current[r][c];
     const newVal = currentVal ? 0 : 1;
-    drawingRef.current = { active: true, mode: newVal };
-    setCell(r, c, newVal);
-  }, [setCell]);
+    drawingRef.current = { active: true, mode: newVal, snapshot };
+    setCellRaw(r, c, newVal);
+  }, [setCellRaw]);
 
   const handleCellPointerEnter = useCallback((r: number, c: number) => {
     if (drawingRef.current.active && drawingRef.current.mode !== null) {
-      setCell(r, c, drawingRef.current.mode);
+      setCellRaw(r, c, drawingRef.current.mode);
     }
-  }, [setCell]);
+  }, [setCellRaw]);
 
   useEffect(() => {
-    const stop = () => { drawingRef.current = { active: false, mode: null }; };
+    const stop = () => {
+      if (drawingRef.current.active && drawingRef.current.snapshot) {
+        // Push the pre-drag snapshot to undo stack
+        undoStackRef.current.push(drawingRef.current.snapshot);
+        if (undoStackRef.current.length > MAX_UNDO) undoStackRef.current.shift();
+        redoStackRef.current = [];
+      }
+      drawingRef.current = { active: false, mode: null, snapshot: null };
+    };
     window.addEventListener("pointerup", stop);
     window.addEventListener("pointercancel", stop);
     return () => {
@@ -176,43 +227,43 @@ export function Sequencer() {
   }, []);
 
   const clearAll = useCallback(() => {
-    setGrid((prev) => TRACKS.map(() => new Array(prev[0].length).fill(0)));
-  }, []);
+    setGridWithHistory((prev) => TRACKS.map(() => new Array(prev[0].length).fill(0)));
+  }, [setGridWithHistory]);
 
   const randomize = useCallback(() => {
-    setGrid((prev) => {
+    setGridWithHistory((prev) => {
       const len = prev[0].length;
       return TRACKS.map((_, r) => {
         const density = r === 0 ? 0.3 : r === 1 ? 0.2 : r === 2 ? 0.5 : 0.12;
         return new Array(len).fill(0).map(() => (Math.random() < density ? 1 : 0));
       });
     });
-  }, []);
+  }, [setGridWithHistory]);
 
   const loadPreset = useCallback((idx: number) => {
     const p = PRESETS[idx];
-    setGrid(p.grid.map((r) => [...r]));
+    setGridWithHistory(p.grid.map((r) => [...r]));
     setBpm(p.bpm);
     setSwing(p.swing);
     setKit(p.kit);
     toastManager.add({ title: `Loaded: ${p.name}` });
-  }, []);
+  }, [setGridWithHistory]);
 
   const addBar = useCallback(() => {
-    setGrid((prev) => {
+    setGridWithHistory((prev) => {
       const currentLen = prev[0].length;
       if (currentLen >= 256) return prev;
       return prev.map((row) => [...row, 0, 0, 0, 0]);
     });
-  }, []);
+  }, [setGridWithHistory]);
 
   const removeBar = useCallback(() => {
-    setGrid((prev) => {
+    setGridWithHistory((prev) => {
       const currentLen = prev[0].length;
       if (currentLen <= 4) return prev;
       return prev.map((row) => row.slice(0, currentLen - 4));
     });
-  }, []);
+  }, [setGridWithHistory]);
 
   const handleZoomIn = useCallback(() => {
     setZoom((z) => Math.min(3, z + 0.25));
