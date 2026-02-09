@@ -42,20 +42,22 @@ export function Visualizer({ playing, fullScreen }: VisualizerProps) {
       analyser.getByteFrequencyData(dataArray);
 
       const barCount = Math.floor(w / 8);
-      const step = Math.max(1, Math.floor(bufferLength / barCount));
+      const barWidth = w / barCount;
 
       for (let i = 0; i < barCount; i++) {
-        const value = dataArray[i * step] / 255;
+        // Map bar index to frequency bin using linear interpolation
+        const binIndex = Math.floor((i / barCount) * bufferLength);
+        const value = dataArray[Math.min(binIndex, bufferLength - 1)] / 255;
         const barH = value * h;
         const hue = (i / barCount) * 200 + 310;
         ctx.fillStyle = `hsla(${hue % 360}, 70%, 50%, ${value * 0.15})`;
-        ctx.fillRect(i * (w / barCount), h - barH, w / barCount - 1, barH);
+        ctx.fillRect(i * barWidth, h - barH, barWidth - 1, barH);
       }
     };
 
     draw();
     return () => { cancelAnimationFrame(animRef.current); window.removeEventListener("resize", resize); };
-  }, [playing]);
+  }, [playing, fullScreen]);
 
   return (
     <canvas
