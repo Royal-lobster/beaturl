@@ -22,9 +22,14 @@ BeatURL is a step sequencer that runs entirely in your browser. Every beat you c
 - **6 drum kits** — 808, Acoustic, Electronic, Lo-fi, Industrial, Minimal
 - **Variable length** — 1 to 64 bars, add or remove as needed
 - **12 presets** — 4-on-the-floor, Boom Bap, Trap, Reggaeton, D&B, Bossa Nova, House, Lo-fi Hip Hop, Industrial, Minimal Techno, Afrobeat, Disco
+- **Click & drag painting** — click and drag across cells to paint or erase patterns
+- **Sound preview** — hear each sound instantly when toggling a cell on
+- **Undo / redo** — Ctrl+Z / Ctrl+Shift+Z with full history (drag strokes count as one step)
 - **BPM scrub control** — drag to scrub, click to type, scroll to nudge, double-click for tap tempo
 - **Zoom in/out** — buttons or trackpad pinch
 - **Per-track volume** — tap the track label to cycle levels
+- **Live visualizer** — full-screen frequency visualizer reacts to your beat in real-time
+- **Responsive toolbar** — fluid layout adapts from mobile to tablet to desktop
 - **WAV export** — render your pattern as audio via OfflineAudioContext
 - **URL sharing** — the entire state (grid, BPM, swing, kit, volumes, bar count) lives in the URL hash
 
