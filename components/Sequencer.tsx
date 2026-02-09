@@ -115,18 +115,56 @@ export function Sequencer() {
     return () => document.removeEventListener("keydown", handler);
   }, [togglePlay]);
 
+  // Drawing state for click-and-drag
+  const drawingRef = useRef<{ active: boolean; mode: number | null }>({ active: false, mode: null });
+
   const toggleCell = useCallback((r: number, c: number) => {
     setGrid((prev) => {
       const next = prev.map((row) => [...row]);
       const wasOn = next[r][c];
       next[r][c] = wasOn ? 0 : 1;
-      // Play sound preview when toggling a cell ON
       if (!wasOn) {
         const t = getAudioContext().currentTime;
         playSound(kitRef.current, TRACKS[r].key, t, volumesRef.current[r]);
       }
       return next;
     });
+  }, []);
+
+  const setCell = useCallback((r: number, c: number, value: number) => {
+    setGrid((prev) => {
+      if (prev[r][c] === value) return prev;
+      const next = prev.map((row) => [...row]);
+      next[r][c] = value;
+      if (value === 1) {
+        const t = getAudioContext().currentTime;
+        playSound(kitRef.current, TRACKS[r].key, t, volumesRef.current[r]);
+      }
+      return next;
+    });
+  }, []);
+
+  const handleCellPointerDown = useCallback((r: number, c: number) => {
+    const currentVal = gridRef.current[r][c];
+    const newVal = currentVal ? 0 : 1;
+    drawingRef.current = { active: true, mode: newVal };
+    setCell(r, c, newVal);
+  }, [setCell]);
+
+  const handleCellPointerEnter = useCallback((r: number, c: number) => {
+    if (drawingRef.current.active && drawingRef.current.mode !== null) {
+      setCell(r, c, drawingRef.current.mode);
+    }
+  }, [setCell]);
+
+  useEffect(() => {
+    const stop = () => { drawingRef.current = { active: false, mode: null }; };
+    window.addEventListener("pointerup", stop);
+    window.addEventListener("pointercancel", stop);
+    return () => {
+      window.removeEventListener("pointerup", stop);
+      window.removeEventListener("pointercancel", stop);
+    };
   }, []);
 
   const setVolume = useCallback((r: number, v: number) => {
@@ -305,6 +343,8 @@ export function Sequencer() {
               currentStep={currentStep}
               volume={volumes[r]}
               onToggle={toggleCell}
+              onPointerDown={handleCellPointerDown}
+              onPointerEnter={handleCellPointerEnter}
               onVolumeChange={setVolume}
               cellMinWidth={cellMinWidth}
             />

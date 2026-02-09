@@ -14,12 +14,14 @@ interface TrackRowProps {
   currentStep: number;
   volume: number;
   onToggle: (r: number, c: number) => void;
+  onPointerDown?: (r: number, c: number) => void;
+  onPointerEnter?: (r: number, c: number) => void;
   onVolumeChange: (r: number, v: number) => void;
   cellMinWidth?: number;
 }
 
 export const TrackRow = memo(function TrackRow({
-  track, row, rowIndex, currentStep, volume, onToggle, onVolumeChange, cellMinWidth,
+  track, row, rowIndex, currentStep, volume, onToggle, onPointerDown, onPointerEnter, onVolumeChange, cellMinWidth,
 }: TrackRowProps) {
   const cycleVolume = useCallback(() => {
     const levels = [0, 0.25, 0.5, 0.75, 1.0];
@@ -66,8 +68,10 @@ export const TrackRow = memo(function TrackRow({
           return (
             <button
               key={c}
-              onClick={() => onToggle(rowIndex, c)}
-              className="flex-1 relative border-0 cursor-pointer transition-all duration-[50ms] seq-cell"
+              onClick={() => { if (!onPointerDown) onToggle(rowIndex, c); }}
+              onPointerDown={(e) => { e.preventDefault(); onPointerDown?.(rowIndex, c); }}
+              onPointerEnter={() => onPointerEnter?.(rowIndex, c)}
+              className="flex-1 relative border-0 cursor-pointer transition-all duration-[50ms] seq-cell touch-none"
               data-on={isOn ? "" : undefined}
               style={{
                 "--cell-color": track.color,
