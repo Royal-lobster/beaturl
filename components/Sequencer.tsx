@@ -263,8 +263,8 @@ export function Sequencer() {
 
       {/* Grid area */}
       <div className="flex-1 relative overflow-x-auto overflow-y-hidden p-0">
-        {/* Visualizer as background */}
-        <Visualizer playing={playing} />
+        {/* Visualizer as background — rendered at viewport level via portal-like fixed positioning */}
+        <Visualizer playing={playing} fullScreen />
 
         {/* Step indicators top */}
         <div className="flex h-4 shrink-0" style={{ position: "relative", zIndex: 1 }}>

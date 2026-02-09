@@ -5,9 +5,10 @@ import { getAnalyser } from "@/lib/audio";
 
 interface VisualizerProps {
   playing: boolean;
+  fullScreen?: boolean;
 }
 
-export function Visualizer({ playing }: VisualizerProps) {
+export function Visualizer({ playing, fullScreen }: VisualizerProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const animRef = useRef<number>(0);
 
@@ -58,7 +59,7 @@ export function Visualizer({ playing }: VisualizerProps) {
   return (
     <canvas
       ref={canvasRef}
-      className="absolute inset-0 w-full h-full pointer-events-none"
+      className={`${fullScreen ? "fixed" : "absolute"} inset-0 w-full h-full pointer-events-none`}
       style={{ opacity: 0.6, zIndex: 0 }}
     />
   );
