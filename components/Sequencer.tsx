@@ -304,7 +304,7 @@ export function Sequencer() {
   }, [handleZoomIn, handleZoomOut]);
 
   // Calculate cell min-width based on zoom. Always enforce a minimum so cells stay usable.
-  const MIN_CELL_PX = 20;
+  const MIN_CELL_PX = 10;
   const cellMinWidth = Math.max(MIN_CELL_PX, Math.round(40 * zoom));
 
   const shareURL = useCallback(async () => {
