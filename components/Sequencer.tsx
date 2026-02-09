@@ -373,12 +373,12 @@ export function Sequencer() {
 
       {/* Grid area */}
       <div className="flex-1 relative overflow-x-auto overflow-y-hidden p-0">
+        <div style={{ minWidth: cellMinWidth ? `${cellMinWidth * stepCount + 70}px` : undefined }}>
         {/* Step indicators top */}
         <div className="flex h-4 shrink-0" style={{ position: "relative", zIndex: 1 }}>
           <div className="w-[50px] md:w-[70px] shrink-0 z-10" style={{ background: "#0e0e1a", position: "sticky", left: 0, borderRight: "1px solid rgba(255,255,255,0.04)" }} />
           <div className="flex-1 flex gap-px px-px">
             {Array.from({ length: stepCount }, (_, i) => {
-              // Determine label density: show fewer numbers when cells are narrow
               const effectiveCellWidth = cellMinWidth || (typeof window !== "undefined" ? (window.innerWidth - 70) / stepCount : 40);
               const showEvery = effectiveCellWidth < 12 ? 16 : effectiveCellWidth < 18 ? 8 : effectiveCellWidth < 28 ? 4 : 1;
               const showLabel = i % showEvery === 0 || currentStep === i;
@@ -419,6 +419,7 @@ export function Sequencer() {
               cellMinWidth={cellMinWidth}
             />
           ))}
+        </div>
         </div>
       </div>
 
