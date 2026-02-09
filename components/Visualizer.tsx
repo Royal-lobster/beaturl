@@ -19,9 +19,10 @@ export function Visualizer({ playing, fullScreen }: VisualizerProps) {
     const dpr = window.devicePixelRatio || 1;
 
     function resize() {
-      const rect = canvas!.getBoundingClientRect();
-      canvas!.width = rect.width * dpr;
-      canvas!.height = rect.height * dpr;
+      const w = fullScreen ? window.innerWidth : canvas!.getBoundingClientRect().width;
+      const h = fullScreen ? window.innerHeight : canvas!.getBoundingClientRect().height;
+      canvas!.width = w * dpr;
+      canvas!.height = h * dpr;
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     }
     resize();
@@ -29,8 +30,8 @@ export function Visualizer({ playing, fullScreen }: VisualizerProps) {
 
     const draw = () => {
       animRef.current = requestAnimationFrame(draw);
-      const w = canvas!.getBoundingClientRect().width;
-      const h = canvas!.getBoundingClientRect().height;
+      const w = fullScreen ? window.innerWidth : canvas!.getBoundingClientRect().width;
+      const h = fullScreen ? window.innerHeight : canvas!.getBoundingClientRect().height;
       ctx.clearRect(0, 0, w, h);
 
       const analyser = getAnalyser();
