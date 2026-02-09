@@ -146,6 +146,13 @@ export function Sequencer() {
     }
   }, [tick]);
 
+  const jumpToStep = useCallback((step: number) => {
+    if (!playingRef.current) return;
+    if (timerRef.current) clearTimeout(timerRef.current);
+    stepRef.current = step - 1; // tick will increment
+    tick();
+  }, [tick]);
+
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
       if (e.code === "Space" && e.target === document.body) {
@@ -379,7 +386,8 @@ export function Sequencer() {
               return (
                 <div
                   key={i}
-                  className="flex-1 text-center text-[7px] md:text-[8px] leading-4 overflow-hidden"
+                  className="flex-1 text-center text-[7px] md:text-[8px] leading-4 overflow-hidden cursor-pointer select-none"
+                  onClick={() => jumpToStep(i)}
                   style={{
                     fontFamily: "var(--font-mono)",
                     minWidth: cellMinWidth ? `${cellMinWidth}px` : undefined,
