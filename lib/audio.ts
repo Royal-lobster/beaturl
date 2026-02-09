@@ -26,14 +26,31 @@ export function getAudioContext(): AudioContext {
 /**
  * Ensure AudioContext is running. Must be called from a user gesture handler.
  * On iOS WebKit the context starts suspended and resume() is async —
- * we await it and play a silent buffer to fully unlock the audio output.
+ * we await it and play a silent buffer via <audio> to bypass the mute switch,
+ * then unlock the Web Audio context.
  */
+let _unlockAudio: HTMLAudioElement | null = null;
 export async function ensureAudioUnlocked(): Promise<AudioContext> {
   const ctx = getAudioContext();
+
+  // On iOS, playing a tiny <audio> element from a user gesture overrides the
+  // silent/mute switch for the entire page's audio session. This must happen
+  // before (or alongside) the Web Audio resume.
+  if (!_unlockAudio && typeof document !== "undefined") {
+    // Tiny silent WAV encoded as data URI (44 bytes PCM)
+    _unlockAudio = document.createElement("audio");
+    _unlockAudio.src = "data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAQB8AAIA+AAACABAAZGF0YQAAAAA=";
+    _unlockAudio.setAttribute("playsinline", "");
+    _unlockAudio.style.display = "none";
+    document.body.appendChild(_unlockAudio);
+  }
+  // Play the <audio> to unlock audio session (bypasses mute switch)
+  try { await _unlockAudio?.play(); } catch (_) { /* ignore */ }
+
   if (ctx.state === "suspended") {
     await ctx.resume();
   }
-  // Silent buffer trick — needed on some iOS versions to truly unlock output
+  // Also play silent buffer through Web Audio to fully activate it
   const buf = ctx.createBuffer(1, 1, ctx.sampleRate);
   const src = ctx.createBufferSource();
   src.buffer = buf;
