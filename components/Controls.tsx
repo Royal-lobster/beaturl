@@ -353,7 +353,7 @@ export function Controls({
       >
         <Drum size={11} /> {kitLabels[kit]}
       </button>
-      <div className="hidden xl:flex" style={{ ...section, padding: 0 }}>
+      <div className="hidden xl:!flex items-center" style={{ height: 40, borderRight: "1px solid rgba(255,255,255,0.08)", padding: 0 }}>
         <span style={{ ...label, padding: "0 12px" }}>KIT</span>
         {kits.map((k) => (
           <button
