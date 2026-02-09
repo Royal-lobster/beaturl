@@ -61,7 +61,7 @@ const iconBtn: React.CSSProperties = {
 
 const actionBtn: React.CSSProperties = {
   height: 40,
-  padding: "0 16px",
+  padding: "0 10px",
   background: "none",
   border: "none",
   borderLeft: "1px solid rgba(255,255,255,0.08)",
@@ -274,11 +274,13 @@ export function Controls({
       background: "var(--surface)",
       borderBottom: "1px solid rgba(255,255,255,0.06)",
       display: "flex",
-      flexWrap: "wrap",
+      flexWrap: "nowrap",
       alignItems: "center",
       position: "relative",
       zIndex: 50,
       fontFamily: "var(--font-mono)",
+      overflowX: "auto",
+      overflowY: "hidden",
     }}>
       {/* Logo */}
       <div style={{ ...section, padding: "0 16px" }} className="hidden md:flex">
@@ -431,16 +433,16 @@ export function Controls({
 
       {/* Right actions */}
       <button onClick={randomize} title="Randomize" style={actionBtn} onMouseEnter={(e) => (e.currentTarget.style.color = "#fff")} onMouseLeave={(e) => (e.currentTarget.style.color = "#888")}>
-        <Dice5 size={11} /> RNG
+        <Dice5 size={11} /> <span className="hidden lg:inline">RNG</span>
       </button>
       <button onClick={clearAll} title="Clear All" style={actionBtn} onMouseEnter={(e) => (e.currentTarget.style.color = "#fff")} onMouseLeave={(e) => (e.currentTarget.style.color = "#888")}>
-        <Trash2 size={11} /> CLR
+        <Trash2 size={11} /> <span className="hidden lg:inline">CLR</span>
       </button>
       <button onClick={shareURL} title="Copy Share Link" style={{ ...actionBtn, color: "var(--hihat)" }}>
-        <Link size={11} /> SHARE
+        <Link size={11} /> <span className="hidden lg:inline">SHARE</span>
       </button>
       <button onClick={handleExport} title="Export as WAV" style={{ ...actionBtn, color: "var(--clap)" }}>
-        <Download size={11} /> WAV
+        <Download size={11} /> <span className="hidden lg:inline">WAV</span>
       </button>
     </div>
     </div>
