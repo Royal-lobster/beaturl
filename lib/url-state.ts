@@ -58,7 +58,7 @@ export function decodeState(hash: string): BeatState | null {
     // Detect: if parts[3] looks like a step count (number 4-64, divisible by 4)
     // and parts[4] contains hex chars
     const maybeStepCount = Number(parts[3]);
-    if (parts.length >= 4 + trackCount && maybeStepCount >= 4 && maybeStepCount <= 64 && maybeStepCount % 4 === 0 && /^[0-9a-f]+$/i.test(parts[4])) {
+    if (parts.length >= 4 + trackCount && maybeStepCount >= 4 && maybeStepCount <= 256 && maybeStepCount % 4 === 0 && /^[0-9a-f]+$/i.test(parts[4])) {
       // New hex format
       const bpm = Math.max(40, Math.min(240, Number(parts[0]) || 120));
       const swing = Math.max(0, Math.min(80, Number(parts[1]) || 0));
