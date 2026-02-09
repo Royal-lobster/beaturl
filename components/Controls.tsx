@@ -365,6 +365,12 @@ export function Controls({
         <button onClick={onZoomIn} style={iconBtn}><ZoomIn size={10} /></button>
       </div>
 
+      {/* Undo/Redo */}
+      <div style={{ ...section, gap: 0, padding: 0 }}>
+        <button onClick={onUndo} title="Undo (Ctrl+Z)" style={{ ...iconBtn, opacity: canUndo ? 1 : 0.3, width: 32, height: 40 }} disabled={!canUndo}><Undo2 size={12} /></button>
+        <button onClick={onRedo} title="Redo (Ctrl+Shift+Z)" style={{ ...iconBtn, opacity: canRedo ? 1 : 0.3, width: 32, height: 40 }} disabled={!canRedo}><Redo2 size={12} /></button>
+      </div>
+
       {/* Presets */}
       <div ref={presetsRef} style={{ position: "relative", height: 40 }}>
         <button onClick={() => setPresetsOpen(!presetsOpen)} style={{ ...actionBtn, borderLeft: "none", borderRight: "none" }}>
@@ -424,12 +430,6 @@ export function Controls({
       </a>
 
       {/* Right actions */}
-      <button onClick={onUndo} title="Undo (Ctrl+Z)" style={{ ...actionBtn, opacity: canUndo ? 1 : 0.3 }} disabled={!canUndo} onMouseEnter={(e) => canUndo && (e.currentTarget.style.color = "#fff")} onMouseLeave={(e) => (e.currentTarget.style.color = "#888")}>
-        <Undo2 size={11} />
-      </button>
-      <button onClick={onRedo} title="Redo (Ctrl+Shift+Z)" style={{ ...actionBtn, opacity: canRedo ? 1 : 0.3 }} disabled={!canRedo} onMouseEnter={(e) => canRedo && (e.currentTarget.style.color = "#fff")} onMouseLeave={(e) => (e.currentTarget.style.color = "#888")}>
-        <Redo2 size={11} />
-      </button>
       <button onClick={randomize} title="Randomize" style={actionBtn} onMouseEnter={(e) => (e.currentTarget.style.color = "#fff")} onMouseLeave={(e) => (e.currentTarget.style.color = "#888")}>
         <Dice5 size={11} /> RNG
       </button>
