@@ -22,6 +22,8 @@ export function Sequencer() {
   const [playing, setPlaying] = useState(false);
   const [currentStep, setCurrentStep] = useState(-1);
   const [zoom, setZoom] = useState(1); // 1 = default (fit), >1 = zoomed in, <1 = zoomed out
+  const [canUndo, setCanUndo] = useState(false);
+  const [canRedo, setCanRedo] = useState(false);
 
   const stepCount = grid[0]?.length || STEPS;
 
@@ -30,16 +32,22 @@ export function Sequencer() {
   const redoStackRef = useRef<number[][][]>([]);
   const MAX_UNDO = 50;
 
+  const updateUndoRedoFlags = useCallback(() => {
+    setCanUndo(undoStackRef.current.length > 0);
+    setCanRedo(redoStackRef.current.length > 0);
+  }, []);
+
   const setGridWithHistory = useCallback((updater: number[][] | ((prev: number[][]) => number[][])) => {
     setGrid((prev) => {
       const next = typeof updater === "function" ? updater(prev) : updater;
-      if (next === prev) return prev; // no change
+      if (next === prev) return prev;
       undoStackRef.current.push(prev.map((r) => [...r]));
       if (undoStackRef.current.length > MAX_UNDO) undoStackRef.current.shift();
-      redoStackRef.current = []; // clear redo on new action
+      redoStackRef.current = [];
+      updateUndoRedoFlags();
       return next;
     });
-  }, []);
+  }, [updateUndoRedoFlags]);
 
   const undo = useCallback(() => {
     const stack = undoStackRef.current;
@@ -47,7 +55,8 @@ export function Sequencer() {
     const prev = stack.pop()!;
     redoStackRef.current.push(gridRef.current.map((r) => [...r]));
     setGrid(prev);
-  }, []);
+    updateUndoRedoFlags();
+  }, [updateUndoRedoFlags]);
 
   const redo = useCallback(() => {
     const stack = redoStackRef.current;
@@ -55,7 +64,8 @@ export function Sequencer() {
     const next = stack.pop()!;
     undoStackRef.current.push(gridRef.current.map((r) => [...r]));
     setGrid(next);
-  }, []);
+    updateUndoRedoFlags();
+  }, [updateUndoRedoFlags]);
 
   const playingRef = useRef(false);
   const stepRef = useRef(-1);
@@ -203,10 +213,10 @@ export function Sequencer() {
   useEffect(() => {
     const stop = () => {
       if (drawingRef.current.active && drawingRef.current.snapshot) {
-        // Push the pre-drag snapshot to undo stack
         undoStackRef.current.push(drawingRef.current.snapshot);
         if (undoStackRef.current.length > MAX_UNDO) undoStackRef.current.shift();
         redoStackRef.current = [];
+        updateUndoRedoFlags();
       }
       drawingRef.current = { active: false, mode: null, snapshot: null };
     };
@@ -351,6 +361,7 @@ export function Sequencer() {
         stepCount={stepCount}
         onAddBar={addBar} onRemoveBar={removeBar}
         zoom={zoom} onZoomIn={handleZoomIn} onZoomOut={handleZoomOut}
+        onUndo={undo} onRedo={redo} canUndo={canUndo} canRedo={canRedo}
       />
 
       {/* Grid area */}

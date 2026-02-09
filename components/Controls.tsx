@@ -6,6 +6,7 @@ import type { KitName } from "@/lib/audio";
 import {
   Play, Square, Minus, Plus, ChevronDown,
   Dice5, Trash2, Link, Download, ZoomIn, ZoomOut, Github, Drum,
+  Undo2, Redo2,
 } from "lucide-react";
 import { BpmControl } from "./BpmControl";
 
@@ -29,6 +30,10 @@ interface ControlsProps {
   zoom: number;
   onZoomIn: () => void;
   onZoomOut: () => void;
+  onUndo: () => void;
+  onRedo: () => void;
+  canUndo: boolean;
+  canRedo: boolean;
 }
 
 const kits: KitName[] = ["808", "acoustic", "electronic", "lofi", "industrial", "minimal"];
@@ -93,6 +98,7 @@ export function Controls({
   shareURL, handleExport, loadPreset,
   stepCount, onAddBar, onRemoveBar,
   zoom, onZoomIn, onZoomOut,
+  onUndo, onRedo, canUndo, canRedo,
 }: ControlsProps) {
   const [presetsOpen, setPresetsOpen] = useState(false);
   const [mobilePresetsOpen, setMobilePresetsOpen] = useState(false);
@@ -202,6 +208,11 @@ export function Controls({
           <button onClick={onZoomOut} style={mobileActionBtn}><ZoomOut size={10} /></button>
           <span style={{ fontSize: 8, color: "#666", whiteSpace: "nowrap" }}>{Math.round(zoom * 100)}%</span>
           <button onClick={onZoomIn} style={mobileActionBtn}><ZoomIn size={10} /></button>
+
+          <div style={{ width: 1, height: 20, background: "rgba(255,255,255,0.08)", margin: "0 2px" }} />
+
+          <button onClick={onUndo} style={{ ...mobileActionBtn, opacity: canUndo ? 1 : 0.3 }} disabled={!canUndo} title="Undo"><Undo2 size={13} /></button>
+          <button onClick={onRedo} style={{ ...mobileActionBtn, opacity: canRedo ? 1 : 0.3 }} disabled={!canRedo} title="Redo"><Redo2 size={13} /></button>
 
           <div style={{ width: 1, height: 20, background: "rgba(255,255,255,0.08)", margin: "0 2px" }} />
 
@@ -413,6 +424,12 @@ export function Controls({
       </a>
 
       {/* Right actions */}
+      <button onClick={onUndo} title="Undo (Ctrl+Z)" style={{ ...actionBtn, opacity: canUndo ? 1 : 0.3 }} disabled={!canUndo} onMouseEnter={(e) => canUndo && (e.currentTarget.style.color = "#fff")} onMouseLeave={(e) => (e.currentTarget.style.color = "#888")}>
+        <Undo2 size={11} />
+      </button>
+      <button onClick={onRedo} title="Redo (Ctrl+Shift+Z)" style={{ ...actionBtn, opacity: canRedo ? 1 : 0.3 }} disabled={!canRedo} onMouseEnter={(e) => canRedo && (e.currentTarget.style.color = "#fff")} onMouseLeave={(e) => (e.currentTarget.style.color = "#888")}>
+        <Redo2 size={11} />
+      </button>
       <button onClick={randomize} title="Randomize" style={actionBtn} onMouseEnter={(e) => (e.currentTarget.style.color = "#fff")} onMouseLeave={(e) => (e.currentTarget.style.color = "#888")}>
         <Dice5 size={11} /> RNG
       </button>
