@@ -127,7 +127,7 @@ export function Controls({
   };
 
   const mobileToolbar = (
-      <div className="md:hidden">
+      <div className="lg:hidden">
       <div style={{
         width: "100%",
         background: "var(--surface)",
@@ -272,7 +272,7 @@ export function Controls({
     );
 
   const desktopToolbar = (
-    <div className="hidden md:block">
+    <div className="hidden lg:block">
     <div style={{
       width: "100%",
       background: "var(--surface)",
@@ -287,7 +287,7 @@ export function Controls({
       overflowY: "hidden",
     }}>
       {/* Logo */}
-      <div style={{ ...section, padding: "0 16px" }} className="hidden md:flex">
+      <div style={{ ...section, padding: "0 16px" }} className="hidden lg:flex">
         <span style={{ fontFamily: "var(--font-display)", color: "#fff", fontSize: 14, fontWeight: 700, letterSpacing: 3, textTransform: "uppercase" }}>
           BeatURL
         </span>
@@ -329,8 +329,30 @@ export function Controls({
         <span style={{ fontSize: 9, color: "var(--clap)", width: 24, textAlign: "center" }}>{swing}%</span>
       </div>
 
-      {/* Kit */}
-      <div style={{ ...section, padding: 0 }}>
+      {/* Kit — dropdown on lg, full buttons on xl */}
+      <button
+        onClick={cycleKit}
+        title={`Kit: ${kit}`}
+        className="xl:hidden"
+        style={{
+          ...section,
+          padding: "0 8px",
+          border: "none",
+          borderLeft: "1px solid rgba(255,255,255,0.08)",
+          cursor: "pointer",
+          fontSize: 9,
+          fontWeight: 600,
+          letterSpacing: 1,
+          textTransform: "uppercase",
+          fontFamily: "var(--font-mono)",
+          background: "rgba(48, 209, 88, 0.15)",
+          color: "var(--tom)",
+          gap: 4,
+        }}
+      >
+        <Drum size={11} /> {kitLabels[kit]}
+      </button>
+      <div className="hidden xl:flex" style={{ ...section, padding: 0 }}>
         <span style={{ ...label, padding: "0 12px" }}>KIT</span>
         {kits.map((k) => (
           <button
